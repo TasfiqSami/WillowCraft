@@ -2,36 +2,39 @@
 
 ## Deploy to Vercel
 
-Vercel is supported using static delivery from the repository root and two small Node.js Functions for the runtime configuration endpoints. The original `server.mjs` remains available for local development and for traditional Node.js hosts.
+Vercel uses a dedicated static build for the website. The build script copies the exact website runtime and its assets into `public/`, and generates `runtime-config.js` and `runtime-theme.css` from the Vercel Environment Variables. The original `server.mjs` remains unchanged for local development and traditional Node.js hosts.
 
 ### Import the project
 
 1. Import `TasfiqSami/WillowCraft` in Vercel.
 2. Set the Root Directory to the repository root.
 3. Choose the **Other** framework preset.
-4. Leave the Build Command empty. The checked-in `vercel.json` explicitly sets `outputDirectory` to `.` (the repository root), overriding any stale Output Directory value saved in Project Settings. There is no Vercel build step or dependency installation required.
-5. Use Node.js 24.x for Functions. The package engine range intentionally excludes Node.js 26 until the deployment CLI/toolchain is updated.
-6. Add optional branding and theme variables from `.env.example` in Project Settings → Environment Variables. Do not add private secrets as browser-facing site settings.
+4. The checked-in `vercel.json` sets the Build Command to `npm run build:vercel` and Output Directory to `public`. These settings override the dashboard values for this deployment.
+5. Use Node.js 24.x for the build and Functions configuration. The package engine range intentionally excludes Node.js 26 until the deployment toolchain is updated.
+6. Add the optional branding and theme values from `.env.example` in Project Settings → Environment Variables. Apply the values to Preview and Production as needed. Only public branding and theme values are exposed in the generated browser files; never put secrets in them.
 
-The root output setting is important: if the Output Directory is set to a missing folder such as `dist`, Vercel can publish the HTML fallback without the CSS, JavaScript, or image files. Deploy the project after confirming the Root Directory is the repository root. Do not use a legacy `builds` array in `vercel.json`: when `builds` is configured, Vercel includes only the build outputs explicitly produced by those builders, which can omit the website's static files.
+### What the build does
 
-### How the Vercel deployment works
+- Copies `index.html`, `styles.css`, `src/`, `assets/`, `logo.png`, and `Banners.png` into `public/`.
+- Generates `public/runtime-config.js` and `public/runtime-theme.css` using the Vercel build environment.
+- Publishes only the completed `public/` directory as the static website.
+- Rewrites the known website routes to `index.html`, without catching asset requests or unknown paths.
+- Keeps the legacy `/news` and `/staff` redirects.
 
-- Vercel serves `index.html`, `styles.css`, `src/`, `assets/`, `logo.png`, and `Banners.png` as static files.
-- `api/runtime-config.js` backs the public `/runtime-config.js` URL.
-- `api/runtime-theme.js` backs the public `/runtime-theme.css` URL.
-- `vercel.json` rewrites application routes to `index.html`, while existing files are served directly. It also keeps the legacy `/news` and `/staff` redirects.
-- Runtime endpoints return `Cache-Control: no-store` so environment changes are not held in a stale browser/CDN cache.
+This is a static Vercel deployment; it does not need serverless runtime endpoints. The generated runtime files are static build artifacts, so changing environment variables requires a new deployment.
 
 ### Verify the deployment
 
-After deploying, open the homepage and refresh these URLs directly:
+After deployment, check these URLs directly:
 
+- `/`
+- `/styles.css` (should return CSS, not HTML)
+- `/src/app.js` (should return JavaScript, not HTML)
+- `/runtime-config.js` (should return JavaScript, not HTML)
+- `/runtime-theme.css` (should return CSS, not HTML)
 - `/guides`
 - `/guides/land-claims`
 - `/announcements`
-- `/runtime-config.js`
-- `/runtime-theme.css`
 
 Also verify that `Banners.png`, `logo.png`, `assets/syxlor-mark.png`, and `assets/willowcraft-music.mp3` load. Check desktop and mobile layouts, and confirm the dark/light theme switch works.
 
