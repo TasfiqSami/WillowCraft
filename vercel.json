@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "public",
   "redirects": [
     {
       "source": "/news",
@@ -19,15 +22,99 @@
   ],
   "rewrites": [
     {
-      "source": "/runtime-config.js",
-      "destination": "/api/runtime-config"
+      "source": "/about",
+      "destination": "/index.html"
     },
     {
-      "source": "/runtime-theme.css",
-      "destination": "/api/runtime-theme"
+      "source": "/features",
+      "destination": "/index.html"
     },
     {
-      "source": "/(.*)",
+      "source": "/how-to-join",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/guides",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/guides/land-claims",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/guides/economy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/guides/custom-biomes",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/guides/ranks",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/rules",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/community",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/announcements",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/announcements/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ranks",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/store",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/leaderboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/gallery",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/shipping",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/refunds",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/team",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/maintenance",
       "destination": "/index.html"
     }
   ],
@@ -65,6 +152,5 @@
         }
       ]
     }
-  ],
-  "outputDirectory": "."
+  ]
 }
