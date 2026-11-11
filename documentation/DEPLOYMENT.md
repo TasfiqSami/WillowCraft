@@ -1,50 +1,54 @@
 # Deployment
 
-## Hosting requirements
+## Deploy to Vercel
 
-- A Node.js application host with Node.js 24 or newer.
-- Ability to run `npm start` (or `node server.mjs`).
-- The host-provided `PORT` environment variable must be honored.
-- A custom domain and HTTPS can be configured in the hosting control panel after deployment.
-- No database, package install, build tool, or `node_modules` directory is required on the server.
+Vercel is supported using static delivery for the website and two small Node.js Functions for the runtime configuration endpoints. The original `server.mjs` remains available for local development and for traditional Node.js hosts.
 
-## Produce the upload bundle
+### Import the project
 
-This section applies when working from the full source project. A deployment ZIP is already built and can be extracted into the host app root; do not try to run the source build commands from inside that ZIP.
+1. Import `TasfiqSami/WillowCraft` in Vercel.
+2. Set the Root Directory to the repository root.
+3. Choose the **Other** framework preset.
+4. Leave the Build Command and Output Directory empty. The website files are served directly from the repository; there is no Vercel build step or dependency installation required.
+5. Use Node.js 24.x for Functions. The package engine range intentionally excludes Node.js 26 until the deployment CLI/toolchain is updated.
+6. Add optional branding and theme variables from `.env.example` in Project Settings → Environment Variables. Do not add private secrets as browser-facing site settings.
 
-From the source project root:
+Deploy the project. Do not use a legacy `builds` array in `vercel.json`: when `builds` is configured, Vercel includes only the build outputs explicitly produced by those builders, which can omit the website's static files.
 
-```sh
-npm run build
-```
+### How the Vercel deployment works
 
-The command writes a fresh `dist/` directory containing the application runtime and documentation. On Windows, `npm run package` performs both steps and writes `WillowCraft-Deploy.zip` beside the source files. On other systems, create an archive from the contents of `dist/` with hidden files included (especially `.env.example`).
+- Vercel serves `index.html`, `styles.css`, `src/`, `assets/`, `logo.png`, and `Banners.png` as static files.
+- `api/runtime-config.js` backs the public `/runtime-config.js` URL.
+- `api/runtime-theme.js` backs the public `/runtime-theme.css` URL.
+- `vercel.json` rewrites application routes to `index.html`, while existing files are served directly. It also keeps the legacy `/news` and `/staff` redirects.
+- Runtime endpoints return `Cache-Control: no-store` so environment changes are not held in a stale browser/CDN cache.
 
-Upload the contents of `dist/` or extract `WillowCraft-Deploy.zip` into the Node application root. Do not upload the source `node_modules`, local `.env`, ZIP itself, or editor folders.
+### Verify the deployment
 
-## Configure the Node app
+After deploying, open the homepage and refresh these URLs directly:
 
-Set the host's app root to the extracted package directory, runtime to Node.js 24+, and start command to:
+- `/guides`
+- `/guides/land-claims`
+- `/announcements`
+- `/runtime-config.js`
+- `/runtime-theme.css`
+
+Also verify that `Banners.png`, `logo.png`, `assets/syxlor-mark.png`, and `assets/willowcraft-music.mp3` load. Check desktop and mobile layouts, and confirm the dark/light theme switch works.
+
+## Deploy to a traditional Node.js host
+
+The original Node server can also run on a Node.js application host with Node.js 24 or newer. Upload the full runtime source tree, including `server.mjs`, `index.html`, `styles.css`, `src/`, `assets/`, `logo.png`, and `Banners.png`.
+
+Set the app start command to:
 
 ```sh
 npm start
 ```
 
-The package also works with `node server.mjs`. Set `HOST=0.0.0.0` (or the bind address required by the provider) and use the host's assigned `PORT`; the server otherwise defaults to loopback and port `4173` for a private local preview. Add environment variables in the host dashboard or provide a private `.env` file based on `.env.example`. Do not upload a `.env` containing local or secret values to public source control.
+Set `HOST=0.0.0.0` (or the bind address required by the provider) and use the host-provided `PORT`. The server otherwise defaults to loopback and port `4173` for local preview. Add optional environment variables in the host dashboard or provide a private `.env` file based on `.env.example`.
 
-## After deployment
-
-1. Attach the custom domain and enable HTTPS at the host.
-2. Visit the homepage and a nested route such as `/guides` directly to confirm route fallback works.
-3. Verify `Banners.png`, `logo.png`, `assets/syxlor-mark.png`, and `assets/willowcraft-music.mp3` load.
-4. Check the site name and dark/light palettes; verify on desktop and mobile.
-5. Check host logs and the health/status tools provided by your hosting service.
-6. Complete the [release checklist](RELEASE_CHECKLIST.md) and owner review items before public launch.
-
-## Static hosting
-
-The provided production target is Node hosting. This app generates `/runtime-config.js` and `/runtime-theme.css` from environment settings and needs the Node server for those endpoints and route fallback. A static host would need equivalents for the runtime config/theme files and rewrites for all application routes; copying only the static files is not a complete deployment.
+Do not upload a local `.env` file or publish secrets in source control.
 
 ## Updating a deployed release
 
-Update the source project, run `npm run build`, and replace the deployed application files with the new `dist/` contents. Keep a backup of the currently deployed package and your production environment settings before replacing files. No database migration is involved in the current app.
+Push the updated source to GitHub and redeploy through Vercel, or replace the files on a traditional Node.js host. Keep a backup of production environment settings before changing them. No database migration is involved in the current app.
