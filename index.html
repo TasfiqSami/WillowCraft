@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07110f" />
+    <meta name="description" content="A magical Minecraft SMP experience. Explore custom biomes, build your legacy, and join a cozy community on WillowCraft." />
+    <meta property="og:title" content="WillowCraft — Find your place in the wild" />
+    <meta property="og:description" content="Explore custom biomes, build your legacy, and join a cozy Survival SMP community." />
+    <meta property="og:image" content="/logo.png" />
+    <title>WillowCraft — Find your place in the wild</title>
+    <link rel="icon" href="/logo.png" />
+    <link rel="preload" as="image" href="/Banners.png" fetchpriority="high" />
+    <script src="/runtime-config.js"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/runtime-theme.css" />
+    <script src="/src/theme.js"></script>
+    <script type="module" src="/src/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="preloader" id="preloader" aria-label="Loading WillowCraft" role="status"><img src="/logo.png" alt="" /><span class="loader-mark"></span></div>
+    <div id="site-header"></div>
+    <audio id="background-audio" src="/assets/willowcraft-music.mp3" loop autoplay preload="auto"></audio>
+    <main id="main" tabindex="-1"><div class="route-skeleton" aria-hidden="true"><i></i><i></i><i></i></div></main>
+    <div id="site-footer"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="/src/particles.js" defer></script>
+  </body>
+</html>
