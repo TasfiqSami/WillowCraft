@@ -2,18 +2,18 @@
 
 ## Deploy to Vercel
 
-Vercel is supported using static delivery for the website and two small Node.js Functions for the runtime configuration endpoints. The original `server.mjs` remains available for local development and for traditional Node.js hosts.
+Vercel is supported using static delivery from the repository root and two small Node.js Functions for the runtime configuration endpoints. The original `server.mjs` remains available for local development and for traditional Node.js hosts.
 
 ### Import the project
 
 1. Import `TasfiqSami/WillowCraft` in Vercel.
 2. Set the Root Directory to the repository root.
 3. Choose the **Other** framework preset.
-4. Leave the Build Command and Output Directory empty. The website files are served directly from the repository; there is no Vercel build step or dependency installation required.
+4. Leave the Build Command empty. The checked-in `vercel.json` explicitly sets `outputDirectory` to `.` (the repository root), overriding any stale Output Directory value saved in Project Settings. There is no Vercel build step or dependency installation required.
 5. Use Node.js 24.x for Functions. The package engine range intentionally excludes Node.js 26 until the deployment CLI/toolchain is updated.
 6. Add optional branding and theme variables from `.env.example` in Project Settings → Environment Variables. Do not add private secrets as browser-facing site settings.
 
-Deploy the project. Do not use a legacy `builds` array in `vercel.json`: when `builds` is configured, Vercel includes only the build outputs explicitly produced by those builders, which can omit the website's static files.
+The root output setting is important: if the Output Directory is set to a missing folder such as `dist`, Vercel can publish the HTML fallback without the CSS, JavaScript, or image files. Deploy the project after confirming the Root Directory is the repository root. Do not use a legacy `builds` array in `vercel.json`: when `builds` is configured, Vercel includes only the build outputs explicitly produced by those builders, which can omit the website's static files.
 
 ### How the Vercel deployment works
 
