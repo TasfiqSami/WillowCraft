@@ -10,7 +10,7 @@ Vercel uses a dedicated static build for the website. The build script copies th
 2. Set the Root Directory to the repository root.
 3. Choose the **Other** framework preset.
 4. The checked-in `vercel.json` sets the Build Command to `npm run build:vercel` and Output Directory to `public`. These settings override the dashboard values for this deployment.
-5. Use Node.js 24.x for the build and Functions configuration. The package engine range intentionally excludes Node.js 26 until the deployment toolchain is updated.
+5. Use Node.js 24.x for the build environment. The Vercel deployment is static and does not use Node.js Functions. The package engine range intentionally excludes Node.js 26 until the deployment toolchain is updated.
 6. Add the optional branding and theme values from `.env.example` in Project Settings → Environment Variables. Apply the values to Preview and Production as needed. Only public branding and theme values are exposed in the generated browser files; never put secrets in them.
 
 ### What the build does
