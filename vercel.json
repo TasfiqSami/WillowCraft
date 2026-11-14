@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "public",
   "redirects": [
     {
       "source": "/news",
@@ -19,19 +22,95 @@
   ],
   "rewrites": [
     {
-      "source": "/runtime-config.js",
-      "destination": "/api/runtime-config"
-    },
-    {
-      "source": "/runtime-theme.css",
-      "destination": "/api/runtime-theme"
-    },
-    {
       "source": "/api/skin/:ign",
       "destination": "/api/skin?ign=:ign"
     },
     {
-      "source": "/(.*)",
+      "source": "/about",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/features",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/how-to-join",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/guides",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/guides/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/rules",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/community",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/announcements",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/announcements/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ranks",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/store",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/leaderboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/gallery",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/shipping",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/refunds",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/team",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/team/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/maintenance",
       "destination": "/index.html"
     }
   ],
@@ -41,7 +120,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://render.crafty.gg; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+          "value": "default-src 'self'; script-src 'self' https://vercel.live; style-src 'self'; img-src 'self' data: https://render.crafty.gg; connect-src 'self' https://vercel.live wss://vercel.live; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         },
         {
           "key": "X-Content-Type-Options",
@@ -69,6 +148,5 @@
         }
       ]
     }
-  ],
-  "outputDirectory": "."
+  ]
 }
