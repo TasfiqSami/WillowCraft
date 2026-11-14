@@ -1,4 +1,4 @@
-import { server, nav, footerNav, guides, rules, faq } from './config.js';
+import { server, nav, footerNav, guides, rules, faq, team, departments, roleDetails } from './config.js';
 
 const runtime = globalThis.WILLOWCRAFT_RUNTIME || {};
 const siteName = String(runtime.name || server.name);
@@ -165,9 +165,140 @@ function announcementArticle(path) {
   if (!post) return notFound();
   return `<div class="breadcrumbs">${link('/','Home')} <span>›</span> ${link('/announcements','Announcements')} <span>›</span> <span>${esc(post.title)}</span></div>${pageHead(esc(post.date || 'WillowCraft announcement'), esc(post.title), esc(post.summary || ''))}<section class="section article-layout"><aside class="article-side"><span class="section-label">Announcement</span>${link('/announcements','All announcements')}</aside><article class="article-body">${(post.body || []).map(p=>`<p>${esc(p)}</p>`).join('')}<div class="related-guides"><h3>Keep in touch</h3>${discordLink('Join the Discord')}</div></article></section>`;
 }
+const roleDepartment = {
+  'Owner': 'ownership',
+  'Server Manager': 'management',
+  'Management': 'management',
+  'Head Developer': 'development',
+  'Developer': 'development',
+  'System Administrator': 'infrastructure',
+  'Marketer': 'marketing',
+  'Senior Moderator': 'moderation'
+};
+
+function teamBySlug(slug) {
+  const key = String(slug || '').toLowerCase();
+  return team.find(member => member.slug === key) || null;
+}
+function departmentLabel(id) {
+  return departments.find(item => item.id === id)?.label || 'WillowCraft team';
+}
+function memberSearchText(member) {
+  return [member.ign, member.name, ...member.roles, ...member.departments.map(departmentLabel)].join(' ').toLowerCase();
+}
+function placeholderArt(ign) {
+  const letters = String(ign || 'W').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'W';
+  let hue = 0;
+  for (const character of String(ign || 'W')) hue = (hue * 31 + character.charCodeAt(0)) % 360;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue},44%,33%)"/><stop offset="1" stop-color="hsl(${(hue + 45) % 360},38%,17%)"/></linearGradient></defs><rect width="64" height="64" rx="12" fill="url(#g)"/><text x="32" y="41" text-anchor="middle" font-family="monospace" font-size="21" fill="#e1f8e8">${letters}</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+function mcHead(ign, size = 128) {
+  return `<img class="mc-head" src="https://render.crafty.gg/3d/head/${encodeURIComponent(ign)}" data-mc-art="head" data-ign="${esc(ign)}" alt="${esc(ign)} Minecraft head" width="${size}" height="${size}" loading="lazy" decoding="async">`;
+}
+function mcFull(ign) {
+  return `<img class="mc-full" src="https://render.crafty.gg/3d/full/${encodeURIComponent(ign)}" data-mc-art="full" data-ign="${esc(ign)}" alt="Full Minecraft character render of ${esc(ign)}" width="420" height="620" loading="eager" decoding="async" fetchpriority="high">`;
+}
+function roleBadges(member, extraClass = '') {
+  return `<div class="member-roles ${extraClass}">${member.roles.map(role => `<span class="role-badge role-${roleDepartment[role] || 'development'}">${esc(role)}</span>`).join('')}</div>`;
+}
+function teamMemberCard(member, index) {
+  const owner = member.departments.includes('ownership');
+  const primary = member.departments[0];
+  return `<a class="team-card${owner ? ' team-card-owner' : ''}${member.featured ? ' team-card-featured' : ''} reveal" href="/team/${member.slug}" data-departments="${member.departments.join(' ')}" data-search="${esc(memberSearchText(member))}" style="--delay:${Math.min(index * 45, 360)}ms">
+    <div class="team-card-top">
+      <span class="team-head-frame">${mcHead(member.ign, 128)}</span>
+      <span class="team-card-index">${String(index + 1).padStart(2, '0')}</span>
+    </div>
+    <div class="team-card-body">
+      <span class="card-eyebrow">${esc(departmentLabel(primary))}</span>
+      <h3>${esc(member.displayName || member.name)}</h3>
+      <code class="team-ign">${esc(member.ign)}</code>
+      ${roleBadges(member)}
+    </div>
+    <span class="team-card-arrow" aria-hidden="true">↗</span>
+  </a>`;
+}
 function staffPage() {
-  const groups = ['Owner', 'Management', 'Development', 'Moderation', 'Former Staff'];
-  return `${pageHead('Community team', 'The people behind<br><em>the forest.</em>', 'The WillowCraft roster as supplied by the server team. Minecraft skin artwork can be added when approved assets are available.')}${groups.map(group=>`<section class="section staff-group"><div class="section-heading"><div><div class="section-label">WillowCraft team</div><h2>${group}</h2></div></div><div class="staff-grid">${server.staff.filter(person=>person.group===group).map(person=>`<article class="staff-card ${person.group==='Owner'?'staff-featured':''}"><div class="staff-avatar" aria-hidden="true">${esc(person.name.slice(0,1).toUpperCase())}</div><span class="card-eyebrow">${esc(person.role)}</span><h3>${esc(person.name)}</h3></article>`).join('') || `<div class="owner-note">No roster entries supplied for this group.</div>`}</div></section>`).join('')}`;
+  const owners = team.filter(member => member.departments.includes('ownership')).length;
+  return `<section class="team-hero">
+    <div class="team-hero-glow" aria-hidden="true"></div>
+    <div class="team-hero-copy">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Community team</div>
+      <h1>The people behind<br><em>the forest.</em></h1>
+      <p>Meet the owners, managers, developers, administrators, marketers, and moderators who keep WillowCraft running and welcoming.</p>
+      <div class="team-hero-stats">
+        <div class="team-stat"><b>${team.length}</b><span>Team members</span></div>
+        <div class="team-stat"><b>${owners}</b><span>Owners</span></div>
+        <div class="team-stat"><b>${departments.length}</b><span>Departments</span></div>
+      </div>
+    </div>
+    <div class="team-hero-stack" aria-hidden="true">
+      <span class="hero-stack-ring"></span>
+      ${team.slice(0, 4).map((member, index) => `<span class="hero-head hero-head-${index}">${mcHead(member.ign, 96)}</span>`).join('')}
+      <span class="hero-stack-label">Staff roster</span>
+    </div>
+  </section>
+  <section class="section team-roster" id="team-roster">
+    <div class="section-heading team-roster-heading">
+      <div><div class="section-label">Staff directory</div><h2>Meet the <em>team.</em></h2></div>
+      <label class="team-search"><span class="sr-only">Search the team</span><input id="team-search" type="search" placeholder="Search name or role" autocomplete="off"></label>
+    </div>
+    <div class="team-filters" role="group" aria-label="Filter team by department">
+      <button class="team-filter" type="button" data-team-filter="all" aria-pressed="true">All<span>${team.length}</span></button>
+      ${departments.map(department => `<button class="team-filter" type="button" data-team-filter="${department.id}" aria-pressed="false">${department.label}<span>${team.filter(member => member.departments.includes(department.id)).length}</span></button>`).join('')}
+    </div>
+    <div class="team-grid" id="team-grid">${team.map((member, index) => teamMemberCard(member, index)).join('')}</div>
+    <div class="team-empty" id="team-empty" hidden><span aria-hidden="true">✳</span><b>No team members match that search.</b><p>Try a different name, role, or department.</p></div>
+  </section>
+  <section class="section team-departments">
+    <div class="section-heading"><div><div class="section-label">How we work</div><h2>Organised for <em>the long run.</em></h2></div></div>
+    <div class="department-grid">${departments.map(department => {
+      const members = team.filter(member => member.departments.includes(department.id));
+      return `<article class="department-card"><span class="department-mark" aria-hidden="true">✳</span><div><span class="card-eyebrow">${members.length} member${members.length === 1 ? '' : 's'}</span><h3>${department.label}</h3><p>${department.blurb}</p><div class="department-members">${members.map(member => `<a href="/team/${member.slug}">${esc(member.ign)}</a>`).join('')}</div></div></article>`;
+    }).join('')}</div>
+  </section>
+  <section class="section team-cta"><div class="community-seal" aria-hidden="true">✳</div><div><div class="section-label">Join the community</div><h2>A good team starts<br>with <em>good people.</em></h2><p>Questions about the team or interested in helping? The official Discord is the place to start.</p></div>${discordLink('Join the Discord')}</section>`;
+}
+function teamProfilePage(path) {
+  const member = teamBySlug(path.slice('/team/'.length));
+  if (!member) return notFound();
+  const displayName = member.name;
+  const primary = member.departments[0];
+  const responsibilities = member.responsibilities || member.roles.map(role => roleDetails[role]).filter(Boolean);
+  const others = team.filter(other => other.slug !== member.slug && other.departments.some(department => member.departments.includes(department))).slice(0, 3);
+  const related = others.length ? others : team.filter(other => other.slug !== member.slug).slice(0, 3);
+  return `<div class="breadcrumbs">${link('/','Home')} <span>›</span> ${link('/team','Team')} <span>›</span> <span>${esc(member.ign)}</span></div>
+  <section class="profile-hero${member.featured ? ' profile-hero-featured' : ''}">
+    <div class="profile-stage">
+      <div class="profile-stage-glow" aria-hidden="true"></div>
+      <div class="profile-stage-grid" aria-hidden="true"></div>
+      ${mcFull(member.ign)}
+      <div class="profile-stage-meta"><span>Minecraft character</span><code>${esc(member.ign)}</code></div>
+    </div>
+    <div class="profile-info">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>${esc(departmentLabel(primary))}</div>
+      <h1>${esc(displayName)}</h1>
+      <div class="profile-identity"><span>IGN <code>${esc(member.ign)}</code></span><button class="copy-button" type="button" data-copy="${esc(member.ign)}">Copy</button></div>
+      ${member.title ? `<p class="profile-professional">${esc(member.title)}</p>` : ''}
+      ${roleBadges(member, 'profile-role-list')}
+      <div class="profile-bio">${member.bio.map(paragraph => `<p>${esc(paragraph)}</p>`).join('')}</div>
+      <div class="profile-actions">
+        <button class="button button-primary" type="button" data-download-skin="${esc(member.ign)}"><span>Download skin</span><b aria-hidden="true">↓</b></button>
+        ${link('/team','Back to team','button button-secondary')}
+        ${(member.links || []).map(linkItem => `<a class="button button-ghost" href="${linkItem.href}" target="_blank" rel="noopener noreferrer">${esc(linkItem.label)}<span aria-hidden="true">↗</span></a>`).join('')}
+      </div>
+      <p class="profile-download-note">Downloads the original Minecraft skin texture as a PNG file. The full-body character above is a rendered preview, not the skin file.</p>
+    </div>
+  </section>
+  <section class="section profile-details">
+    <div class="profile-detail-grid">
+      <article class="profile-detail-card"><div class="section-label">Responsibilities</div><h2>What ${esc(displayName)} does</h2><ul class="profile-list">${responsibilities.map(item => `<li>${esc(item)}</li>`).join('')}</ul></article>
+      <article class="profile-detail-card"><div class="section-label">Departments</div><h2>Where they work</h2><div class="profile-dept-list">${member.departments.map(id => `<a href="/team" class="profile-dept"><b>${departmentLabel(id)}</b><span>${esc(departments.find(item => item.id === id)?.blurb || '')}</span></a>`).join('')}</div></article>
+    </div>
+    ${member.skills ? `<div class="profile-skills"><div class="section-heading"><div><div class="section-label">Skills &amp; technologies</div><h2>Tools of the <em>trade.</em></h2></div></div><div class="skill-grid">${member.skills.map(group => `<article class="skill-group"><h3>${esc(group.title)}</h3><div class="skill-tags">${group.items.map(item => `<span>${esc(item)}</span>`).join('')}</div></article>`).join('')}</div></div>` : ''}
+    <div class="profile-related"><div class="section-heading"><div><div class="section-label">More of the team</div><h2>People who share <em>the work.</em></h2></div></div><div class="related-team-grid">${related.map(other => `<a class="related-member" href="/team/${other.slug}">${mcHead(other.ign, 72)}<div><b>${esc(other.name)}</b><span>${esc(other.roles.join(' · '))}</span></div><i aria-hidden="true">↗</i></a>`).join('')}</div></div>
+  </section>`;
 }
 
 function ranksPage() {
