@@ -244,7 +244,7 @@ function staffPage() {
       <button class="team-filter" type="button" data-team-filter="all" aria-pressed="true">All<span>${team.length}</span></button>
       ${departments.map(department => `<button class="team-filter" type="button" data-team-filter="${department.id}" aria-pressed="false">${department.label}<span>${team.filter(member => member.departments.includes(department.id)).length}</span></button>`).join('')}
     </div>
-    <p class="team-result-count" id="team-result-count" aria-live="polite">' + team.length + ' of " + team.length + " profiles</p>
+    <p class="team-result-count" id="team-result-count" aria-live="polite">Showing ${team.length} of ${team.length} profiles</p>
     <div class="team-grid" id="team-grid">${team.map((member, index) => teamMemberCard(member, index)).join('')}</div>
     <div class="team-empty" id="team-empty" hidden><span aria-hidden="true">✳</span><b>No team members match that search.</b><p>Try a different name, role, or department.</p></div>
   </section>
