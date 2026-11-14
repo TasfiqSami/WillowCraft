@@ -17,6 +17,7 @@ export default async function handler(request, response) {
   } catch (error) {
     const status = error instanceof SkinError ? error.status : 500;
     response.statusCode = status;
+    if (status === 503) response.setHeader('Retry-After', '30');
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');
     response.setHeader('Cache-Control', 'no-store');
     response.end(error instanceof SkinError ? error.message : 'Skin download failed');
