@@ -120,3 +120,16 @@ dialog.cart-drawer{margin:0 0 0 auto;height:100dvh;max-height:100dvh;width:min(4
   .hero-stack-ring,.hero-head,.mc-head.is-loading,.mc-full.is-loading,dialog.cart-drawer[open],.product-dialog[open]{animation:none}
   .team-card,.product-card,.team-head-frame,.product-art span,.related-member{transition:none}.team-card:hover,.product-card:hover,.related-member:hover{transform:none}
 }
+
+
+/* Final polish: honest artwork fallbacks, clearer filtering and focus states. */
+.mc-art-unavailable{display:grid;place-items:center;min-width:0;min-height:0;padding:10px;border:1px dashed var(--line-strong);border-radius:12px;background:linear-gradient(135deg,rgba(112,223,160,.08),transparent 62%),repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 1px,transparent 1px 8px),var(--surface2);color:var(--soft);font:650 10px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.08em;text-align:center;text-transform:uppercase}
+.mc-art-unavailable-head{width:100%;aspect-ratio:1}.mc-art-unavailable-full{width:min(100%,220px);min-height:310px;aspect-ratio:420/620;color:var(--muted);font-size:11px}
+.team-result-count{margin:-14px 0 18px;color:var(--soft);font-size:12px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.team-card:focus-visible,.related-member:focus-visible,.team-filter:focus-visible,.filter-chip:focus-visible,.product-card button:focus-visible{outline:2px solid var(--accent2);outline-offset:3px}
+.team-card-owner{background:radial-gradient(ellipse at 18% 0%,rgba(216,184,106,.1),transparent 64%),linear-gradient(155deg,var(--glass),rgba(17,39,30,.46))}
+.profile-stage{isolation:isolate}.profile-stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 66%,rgba(5,14,10,.24))}.profile-stage-meta{z-index:2}.profile-info h1{overflow-wrap:anywhere}.profile-role-list{gap:8px}.profile-actions .button{min-height:44px}
+.store-hero-inner{z-index:1}.store-status{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}.product-card{box-shadow:0 12px 38px rgba(0,0,0,.08)}.product-card:focus-within{border-color:var(--tone,var(--accent));box-shadow:0 0 0 3px color-mix(in srgb,var(--tone,var(--accent)) 16%,transparent)}
+.product-art{isolation:isolate}.product-art:before{content:"";position:absolute;width:116px;aspect-ratio:1;border:1px solid color-mix(in srgb,var(--tone,var(--accent)) 32%,transparent);transform:rotate(45deg);box-shadow:0 0 0 14px color-mix(in srgb,var(--tone,var(--accent)) 5%,transparent),0 0 0 28px color-mix(in srgb,var(--tone,var(--accent)) 3%,transparent)}
+.product-art span{text-shadow:0 8px 28px color-mix(in srgb,var(--tone,var(--accent)) 50%,transparent)}
+@media(max-width:600px){.team-result-count{margin-top:-10px}.mc-art-unavailable-full{min-height:250px}.profile-stage{min-height:400px}}
