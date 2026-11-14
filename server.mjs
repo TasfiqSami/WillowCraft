@@ -2,7 +2,8 @@ import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { server as content, nav, footerNav, guides } from './src/config.js';
+import { server as content, nav, footerNav, guides, team } from './src/config.js';
+import { fetchSkinPng, skinHeaders, SkinError } from './src/skin-service.js';
 
 const root = resolve(fileURLToPath(new URL('.', import.meta.url)));
 try { process.loadEnvFile(resolve(root, '.env')); }
@@ -12,7 +13,7 @@ const host = process.env.HOST || '0.0.0.0';
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be an integer between 1 and 65535.');
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.mp3': 'audio/mpeg' };
 const headers = {
-  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://render.crafty.gg; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
   'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin',
   'X-Frame-Options': 'DENY', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Resource-Policy': 'same-origin',
@@ -71,6 +72,18 @@ http.createServer(async (req, res) => {
     res.end(runtimeThemeCss());
     return;
   }
+  if (path.startsWith('/api/skin/')) {
+    try {
+      const { name, png } = await fetchSkinPng(path.slice('/api/skin/'.length));
+      res.writeHead(200, skinHeaders(name, png.length));
+      res.end(req.method === 'HEAD' ? undefined : png);
+    } catch (error) {
+      const known = error instanceof SkinError;
+      res.writeHead(known ? error.status : 500, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(known ? error.message : 'Skin download failed');
+    }
+    return;
+  }
   if (path === '/news' || path.startsWith('/news/')) { res.writeHead(308, { Location: `/announcements${path.slice('/news'.length)}` }).end(); return; }
   if (path === '/staff') { res.writeHead(308, { Location: '/team' }).end(); return; }
   const candidate = resolve(root, `.${path}`);
@@ -82,7 +95,8 @@ http.createServer(async (req, res) => {
     const route = path.replace(/\/$/, '') || '/';
     const announcementPath = route.startsWith('/announcements/') && content.announcements.some(item => item.slug === (() => { try { return decodeURIComponent(route.slice('/announcements/'.length)); } catch { return null; } })());
     file = resolve(root, 'index.html');
-    if (!pagePaths.has(route) && !announcementPath) responseStatus = 404;
+    const teamPath = route.startsWith('/team/') && team.some(member => member.slug === route.slice('/team/'.length).toLowerCase());
+    if (!pagePaths.has(route) && !announcementPath && !teamPath) responseStatus = 404;
   }
   if (!file.startsWith(root + sep) && file !== root) { res.writeHead(403).end('Forbidden'); return; }
   try {
