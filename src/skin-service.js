@@ -73,7 +73,17 @@ export async function fetchSkinPng(ign) {
   } catch {
     throw new SkinError(502, 'Unexpected texture URL');
   }
-  if (target.protocol !== 'https:' || target.hostname !== TEXTURE_HOST) throw new SkinError(502, 'Unexpected texture host');
+  // Mojang commonly publishes this trusted CDN URL with an http scheme.
+  // Upgrade that exact allow-listed host to HTTPS; never accept another host.
+  if (
+    !['http:', 'https:'].includes(target.protocol) ||
+    target.hostname !== TEXTURE_HOST ||
+    target.port || target.username || target.password ||
+    !/^\/texture\/[a-f0-9]{64}$/i.test(target.pathname)
+  ) throw new SkinError(502, 'Unexpected texture host');
+  target.protocol = 'https:';
+  target.search = '';
+  target.hash = '';
 
   let response;
   try {
@@ -82,6 +92,8 @@ export async function fetchSkinPng(ign) {
     throw new SkinError(502, 'Could not download the skin texture');
   }
   if (!response.ok) throw new SkinError(502, 'Could not download the skin texture');
+  const declaredLength = Number(response.headers.get('content-length') || 0);
+  if (declaredLength > MAX_BYTES) throw new SkinError(502, 'The skin texture was too large');
 
   const png = Buffer.from(await response.arrayBuffer());
   if (png.length === 0 || png.length > MAX_BYTES || !PNG_SIGNATURE.every((byte, index) => png[index] === byte)) {

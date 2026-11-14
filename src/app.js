@@ -188,13 +188,6 @@ function departmentLabel(id) {
 function memberSearchText(member) {
   return [member.ign, member.name, ...member.roles, ...member.departments.map(departmentLabel)].join(' ').toLowerCase();
 }
-function placeholderArt(ign) {
-  const letters = String(ign || 'W').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || 'W';
-  let hue = 0;
-  for (const character of String(ign || 'W')) hue = (hue * 31 + character.charCodeAt(0)) % 360;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue},44%,33%)"/><stop offset="1" stop-color="hsl(${(hue + 45) % 360},38%,17%)"/></linearGradient></defs><rect width="64" height="64" rx="12" fill="url(#g)"/><text x="32" y="41" text-anchor="middle" font-family="monospace" font-size="21" fill="#e1f8e8">${letters}</text></svg>`;
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
 function mcHead(ign, size = 128) {
   return `<img class="mc-head is-loading" src="https://render.crafty.gg/3d/head/${encodeURIComponent(ign)}" data-mc-art="head" data-ign="${esc(ign)}" alt="${esc(ign)} Minecraft head" width="${size}" height="${size}" loading="lazy" decoding="async">`;
 }
@@ -251,6 +244,7 @@ function staffPage() {
       <button class="team-filter" type="button" data-team-filter="all" aria-pressed="true">All<span>${team.length}</span></button>
       ${departments.map(department => `<button class="team-filter" type="button" data-team-filter="${department.id}" aria-pressed="false">${department.label}<span>${team.filter(member => member.departments.includes(department.id)).length}</span></button>`).join('')}
     </div>
+    <p class="team-result-count" id="team-result-count" aria-live="polite">Showing ${team.length} of ${team.length} profiles</p>
     <div class="team-grid" id="team-grid">${team.map((member, index) => teamMemberCard(member, index)).join('')}</div>
     <div class="team-empty" id="team-empty" hidden><span aria-hidden="true">✳</span><b>No team members match that search.</b><p>Try a different name, role, or department.</p></div>
   </section>
@@ -418,8 +412,17 @@ function render(path, animate = false, restoreY = 0) {
   const teamMember = clean.startsWith('/team/') ? teamBySlug(clean.slice('/team/'.length)) : null;
   const pageTitle = (titles[clean]?.[0] || article?.title || teamMember?.name || (routes[clean] ? clean.slice(1).replaceAll('-', ' ') : 'Page not found')).replaceAll('WillowCraft', siteName);
   document.title = `${pageTitle} · ${siteName}`;
-  const description = (clean === '/' ? server.description : titles[clean]?.[1] || article?.summary || server.description).replaceAll('WillowCraft', siteName);
-  $('meta[name="description"]').content = description;
+  const description = (clean === '/' ? server.description : teamMember?.bio?.[0] || titles[clean]?.[1] || article?.summary || server.description).replaceAll('WillowCraft', siteName);
+  const canonicalUrl = location.origin + clean;
+  const descriptionMeta = $('meta[name="description"]');
+  if (descriptionMeta) descriptionMeta.content = description;
+  const setMeta = (selector, value) => { const element = $(selector); if (element) element.setAttribute('content', value); };
+  setMeta('meta[property="og:title"]', document.title);
+  setMeta('meta[property="og:description"]', description);
+  setMeta('meta[property="og:url"]', canonicalUrl);
+  let canonical = $('link[rel="canonical"]');
+  if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+  canonical.href = canonicalUrl;
   document.body.classList.remove('menu-open');
   $('#site-header').innerHTML = header(clean);
   $('#site-footer').innerHTML = applyConfiguredName(footer());
@@ -581,6 +584,8 @@ function bindInteractions() {
         card.hidden = !match; if (match) shown++;
       });
       $('#team-empty').hidden = shown > 0;
+      const count = $('#team-result-count');
+      if (count) count.textContent = `Showing ${shown} of ${team.length} profiles`;
     };
     document.querySelectorAll('[data-team-filter]').forEach(btn => btn.addEventListener('click', () => {
       dept = btn.dataset.teamFilter;
@@ -611,9 +616,12 @@ function settleArt(img) { img.classList.remove('is-loading'); }
 function fallbackArt(img) {
   if (img.dataset.fallback) return;
   img.dataset.fallback = '1';
-  img.src = placeholderArt(img.dataset.ign);
-  img.classList.remove('is-loading');
-  img.classList.add('is-fallback');
+  const placeholder = document.createElement('span');
+  placeholder.className = 'mc-art-unavailable mc-art-unavailable-' + (img.dataset.mcArt || 'render');
+  placeholder.setAttribute('role', 'img');
+  placeholder.setAttribute('aria-label', 'Minecraft skin render unavailable for ' + (img.dataset.ign || 'this player'));
+  placeholder.textContent = 'Skin unavailable';
+  img.replaceWith(placeholder);
 }
 document.addEventListener('load', event => { if (event.target?.dataset?.mcArt) settleArt(event.target); }, true);
 document.addEventListener('error', event => { if (event.target?.dataset?.mcArt) fallbackArt(event.target); }, true);
