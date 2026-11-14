@@ -47,3 +47,8 @@ This is a documented first benchmark pass, not a substitute for the requested 10
 ## Remaining research gap
 
 The 100-site target remains open. The references above informed the implementation pass, but they should not be presented as 100 completed site audits. Any later benchmark expansion should record the URL, what was actually inspected, the useful pattern and the specific WillowCraft decision it informs.
+
+
+### Skin lookup resiliency
+
+The skin-download endpoint tries the current Minecraft Services username lookup, Mojang's alternate current-name lookup route, then the legacy username route. Mojang may return HTTP 429 when the public username lookup is rate-limited; the API responds with HTTP 503 and Retry-After rather than disguising that condition as a missing player. Successful PNGs are cached in memory for five minutes per warm function instance and concurrent requests for the same username share one upstream lookup. Vercel's response cache can reuse successful responses according to the existing Cache-Control headers.

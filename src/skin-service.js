@@ -7,9 +7,14 @@ const TEXTURE_HOST = 'textures.minecraft.net';
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const MAX_BYTES = 256 * 1024;
 const TIMEOUT_MS = 8000;
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_LIMIT = 128;
+const skinCache = new Map();
+const pendingSkins = new Map();
 
 const LOOKUP_URLS = [
   name => `https://api.minecraftservices.com/minecraft/profile/lookup/name/${encodeURIComponent(name)}`,
+  name => `https://api.mojang.com/minecraft/profile/lookup/name/${encodeURIComponent(name)}`,
   name => `https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(name)}`
 ];
 
@@ -28,6 +33,7 @@ async function getJson(url) {
     throw new SkinError(502, 'Could not reach Mojang');
   }
   if (response.status === 204 || response.status === 404) throw new SkinError(404, 'Player not found');
+  if (response.status === 429) throw new SkinError(503, 'Mojang is rate-limiting skin lookups. Try again shortly.');
   if (!response.ok) throw new SkinError(502, 'Mojang lookup failed');
   try {
     return await response.json();
@@ -53,7 +59,38 @@ async function lookupProfile(name) {
 
 export async function fetchSkinPng(ign) {
   if (!NAME.test(ign)) throw new SkinError(400, 'Invalid Minecraft username');
+  const key = ign.toLowerCase();
+  const cached = skinCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    skinCache.delete(key);
+    skinCache.set(key, cached);
+    return { name: cached.name, png: Buffer.from(cached.png) };
+  }
+  if (cached) skinCache.delete(key);
 
+  const pending = pendingSkins.get(key);
+  if (pending) {
+    const result = await pending;
+    return { name: result.name, png: Buffer.from(result.png) };
+  }
+
+  const request = resolveSkinPng(ign);
+  pendingSkins.set(key, request);
+  try {
+    const result = await request;
+    if (skinCache.size >= CACHE_LIMIT) skinCache.delete(skinCache.keys().next().value);
+    skinCache.set(key, {
+      name: result.name,
+      png: Buffer.from(result.png),
+      expiresAt: Date.now() + CACHE_TTL_MS
+    });
+    return { name: result.name, png: Buffer.from(result.png) };
+  } finally {
+    if (pendingSkins.get(key) === request) pendingSkins.delete(key);
+  }
+}
+
+async function resolveSkinPng(ign) {
   const profile = await lookupProfile(ign);
   const session = await getJson(`https://sessionserver.mojang.com/session/minecraft/profile/${profile.id}`);
   const property = Array.isArray(session?.properties) ? session.properties.find(item => item?.name === 'textures') : null;
