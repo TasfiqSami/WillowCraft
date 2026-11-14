@@ -2,29 +2,48 @@
 
 ## Scope and honesty note
 
-The brief asked for research across at least 100 Minecraft sites. That was **not** done. This was built in a sandbox with a restricted web fetcher (only pages returned by search could be opened) and no browser, so no live site could be visually inspected.
+The brief calls for at least 100 distinct Minecraft server websites and webstores, with 20 deeply inspected. I did **not** complete a 100-site audit, so this document does not claim one. I directly opened and read 23 relevant website, storefront, product-theme, platform-documentation and skin-service pages across 21 distinct domains. The fetcher exposed page text and page structure; it did not provide a complete visual/browser audit for every page. Some candidate sites and design listings were inaccessible or only appeared in search results, and those were not counted as reviewed.
 
-What actually happened:
+This is a documented first benchmark pass, not a substitute for the requested 100-site study. A full audit would require additional hands-on visual inspection across more SMP, PvP, Skyblock, Prison, MMORPG and store implementations.
 
-- 9 web searches (staff pages, Tebex store design, SMP websites, Hypixel store ranks, Mojang skin APIs) returned lists of results. Those lists were not opened one by one.
-- 5 pages were opened and read: the MineStoreCMS staff-page docs, reviews and the product page for two BuiltByBit Tebex themes (Cube, Allay), the alinea.gg team page, and a BuiltByBit SMP landing-page listing.
-- The rest of the design is based on general knowledge of Minecraft network storefronts and the existing WillowCraft identity (dark forest greens, serif headings, `logo.png`).
+## Benchmarks reviewed
 
-Do not treat this as a 100-site study. Treat it as a small, honest set of references.
+| Reference | What was observable | Useful pattern | WillowCraft application |
+| --- | --- | --- | --- |
+| [Hypixel](https://hypixel.net/) | Server IP and copy action, main navigation, games, leaderboards, forums, rules, support and store links. | Put core player actions and community destinations in a stable global navigation. | Keep join details, team, guides, support and store easy to find without crowding page content. |
+| [Hypixel Store](https://store.hypixel.net/) | Categories for ranks, bundles, currency and add-ons; payment and support disclosures. | Use clear category navigation and disclose the payment operator. | Keep the Ranks/Points catalog compact, and do not imply payment protection until a provider is configured. |
+| [CubeCraft](https://www.cubecraft.net/) | Network navigation spans play, community, reports, rules, updates and store. | A Minecraft network site is an ecosystem, not only a landing page. | Preserve global navigation and existing support, rules, guides and updates routes. |
+| [CubeCraft Store](https://store.cubecraft.net/) | Platform choice and account verification steps are surfaced before purchase. | Explain account/platform requirements before payment. | Add edition/account selection only once WillowCraft confirms its actual account requirements. |
+| [EarthMC](https://earthmc.net/) | Focused hero with server identity, joining and community links, followed by world/story content. | A strong hero communicates identity and one or two next actions. | Keep the woodland identity and a direct route to joining or browsing; avoid decorative sections without a player purpose. |
+| [EarthMC Store](https://store.earthmc.net/) | Product categories and clear one-time/recurring purchase language. | State billing frequency and package type at the point of choice. | Describe current ranks as lifetime ranks; do not add recurring products or bundles that are not in the data. |
+| [ManaCube](https://manacube.com/) | Large network navigation includes game modes, staff/community resources and server information. | Complex networks need a stable hierarchy between game modes and community utilities. | Keep WillowCraft's smaller route set simple; do not copy a multi-mode navigation model it does not need. |
+| [ManaCube Store](https://store.manacube.com/) | Cart/account entry points, category navigation, support links and store utility content. | Cart and support should stay visible throughout browsing. | Keep the cart entry in the store hero and the support route in the trust area. Do not show fabricated recent-purchase activity. |
+| [JartexNetwork Store](https://store.jartexnetwork.com/) | Category-led catalog, product pricing and purchase actions. | Scannable cards let players compare products without opening each detail view. | Keep each rank's name, Points price and supplied perks visible on its card. |
+| [Advancius Store](https://store.advancius.net/) | Store entry includes navigation plus help and policy context. | Support and policy access belong in the store journey, not only in a legal footer. | Keep shipping, refunds, terms, privacy and support accessible, with limitations clearly marked. |
+| [Wynncraft Store](https://store.wynncraft.com/) | Separate store destination within a larger game/community ecosystem. | A focused storefront can still provide a route back to the main network site. | Keep WillowCraft's shared header and footer around the store rather than creating a disconnected microsite. |
+| [PikaNetwork Store](https://store.pika-network.net/) | Category and package groupings, product descriptions and cart-oriented actions. | Product groups should map to actual products. | Use only the configured Ranks and Points categories; do not add empty crate, kit or cosmetic categories. |
+| [FadeCloud Store](https://store.fadecloud.com/) | Game/category navigation and username-aware purchase context. | Minecraft identity is part of a game-server buying flow. | Preserve username validation in the cart preview; enforce the same validation server-side if checkout is added. |
+| [MineStoreCMS](https://minestorecms.com/) | Store platform positioning around store modules, hosting and delivery capabilities. | Product display, payment processing and game delivery are distinct backend responsibilities. | Do not describe the static catalog as an integrated payment system; a provider and order backend are still required. |
+| [MineStoreCMS staff page docs](https://docs.minestorecms.com/features/staff-page) | Staff grouped by role with Minecraft identity data and deliberate ordering. | Staff directories benefit from role groups and consistent player identity. | Use one profile per person, show multiple role badges, and let department membership drive filters. |
+| [Allay Tebex Theme](https://builtbybit.com/resources/allay-tebex-theme.38923/) | Modular store add-ons include rank comparisons, sliders, FAQs/rules and staff pages; responsive layout is a key selling point. | Reusable sections work when they reflect real data and remain usable on mobile. | Keep the rank comparison and modular catalog/detail/cart areas; avoid add-ons that have no real data. |
+| [Cube Tebex Theme](https://builtbybit.com/resources/cube-tebex-theme.41577/) | Premium storefront example with rank-comparison and mobile-oriented presentation. | Rank comparison and readable mobile layouts are high-value store features. | Keep the real rank comparison and horizontally scrollable table for narrow screens. |
+| [Unique Theme for Tebex](https://builtbybit.com/resources/unique-theme-for-tebex.41043/) | Separate premium theme example with a dark branded storefront direction. | Store styling should support a network's own identity. | Keep WillowCraft's forest palette and geometric motifs instead of importing another theme's brand. |
+| [Minecraftstore.io](https://minecraftstore.io/) | Store platform emphasizes domain control, payments, delivery features and configurable styling. | Product presentation, payment handling and delivery automation are separate systems. | Treat payments and game delivery as backend integrations; keep the frontend honest until those services exist. |
+| [Skyblock Shop](https://shop.skyblock.net/) | Product categories and a storefront organized around a specific server/game identity. | Category labels should match what the server actually sells. | Show only the rank and points products present in WillowCraft's configuration. |
+| [TitanMC Store](https://store.titanmc.gg/) | Store navigation covers multiple product groups and purchase context. | Multi-mode stores need a hierarchy that does not bury the package catalog. | Keep WillowCraft's smaller catalog focused; do not invent cross-mode product groups. |
+| [TalonMC Store](https://store.talonmc.net/) | Category navigation with product groupings and username-aware purchase context. | Tie package selection to the right player identity and server mode. | Keep the username field in the cart preview and document the server-side validation still required. |
+| [Crafty Skin Service](https://crafty.gg/skin-service) | Documents 3D head, bust and full-body renders, plus sizing, camera and shadow parameters. | Use lightweight heads in directories and reserve full-body renders for individual profiles. | Team cards use head renders; a full-body render is loaded only on a member profile. |
+| [Mojang API reference](https://minecraft.wiki/w/Mojang_API) | The session profile's base64 textures property contains a skin URL; documented examples use the textures.minecraft.net host and an HTTP URL. | A rendered player preview is not the original PNG; download and validate the texture separately. | Keep the server-side username → UUID → session texture flow, validate the CDN host and PNG signature, and upgrade the trusted texture URL to HTTPS. |
 
-## Findings and where they were applied
+## Findings translated into WillowCraft decisions
 
-| Reference | Useful idea | Applied to WillowCraft |
-| --- | --- | --- |
-| MineStoreCMS staff page docs (docs.minestorecms.com/features/staff-page) | Staff are grouped by role group, each with username and UUID; ordering is deliberate. | Team directory is ordered owners, management, technical, moderation, with a department filter. |
-| alinea.gg team page | A plain text bio per member (role, join info). It has no avatars or filters, which reads as thin. | Used as the thing to improve on: heads on every card, role badges, filters, dedicated profiles. |
-| BuiltByBit: Cube Tebex theme reviews | Buyers single out the rank comparison table and mobile responsiveness as the valued parts. | Rank comparison table built from real rank data; responsive grids and a horizontally scrollable table on small screens. |
-| BuiltByBit: Allay Tebex theme | Optional modular sections (rank table, FAQ/rules, staff page) and both light and dark themes. | Store sections are modular (catalog, compare, top-up, trust info); existing light/dark themes are respected. |
-| BuiltByBit: Lifesteal SMP landing page | A one-click "Copy IP" with brief confirmation, and a store button that scrolls to the ranks. | WillowCraft already has Copy IP; the store hero uses anchor buttons to the catalog and comparison table. |
-| Mojang API references (wiki.vg and mirrors) | A username resolves to a UUID, then the session server returns base64 texture data containing the skin URL on textures.minecraft.net. | `src/skin-service.js` follows exactly this chain, server-side. |
+- **Team structure:** ownership, management, development, infrastructure, marketing and moderation are explicit departments. Each person appears once; multiple responsibilities are shown as role badges.
+- **Minecraft identity:** cards use Crafty head renders; individual profiles load one full-body render. When the render service fails, the UI says the skin render is unavailable rather than showing generated initials as a fake avatar.
+- **Profile download:** the server-side endpoint resolves the actual Mojang skin texture. It does not download the Crafty character render. Mojang's documented HTTP texture URL is upgraded to HTTPS only after the host and path are validated.
+- **Store content:** products come from src/config.js. The only configured top-up reference price is 700 Points for 330 BDT; other quantities do not receive an invented price.
+- **Checkout:** the repository has no payment provider, order database, signed payment webhook or in-game delivery worker. Checkout stays disabled; a cart preview is not presented as a purchase.
+- **Visual identity:** deep forest greens remain primary, gold is restrained to ownership/featured states, and the pixel-grid geometry is CSS-only. No third-party branding or assets are copied.
 
-## Design decisions that came from this
+## Remaining research gap
 
-- Everything shown in the store is real data from `src/config.js`. Nothing was invented to make it look fuller.
-- Gold is a restrained accent used for owners, featured members and store notices; greens remain the primary brand colour.
-- A faint pixel-grid motif (CSS only) is the Minecraft nod; no copied assets or other servers' branding.
+The 100-site target remains open. The references above informed the implementation pass, but they should not be presented as 100 completed site audits. Any later benchmark expansion should record the URL, what was actually inspected, the useful pattern and the specific WillowCraft decision it informs.
