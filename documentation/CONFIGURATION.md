@@ -36,3 +36,18 @@ Edit `src/config.js` for the server name/description, connection addresses, Bedr
 - Replace `Banners.png` and `logo.png` with owner-approved artwork, preserving those names or updating references in `index.html`, `src/app.js`, and `styles.css`.
 - Replace `assets/willowcraft-music.mp3` to change the background track; keep the filename or update the audio element in `index.html`.
 - Add approved gallery assets under `assets/` and provide entries in `server.gallery` in `src/config.js`.
+
+
+## Store and payment integration readiness
+
+The current storefront is a **catalog and cart preview**, not a checkout integration. In the current source:
+
+- server.store.paymentConfigured is false.
+- server.store.packages is empty.
+- The rank catalog is generated from the configured VIP, MVP and ELITE data.
+- The only configured top-up reference is 700 Points for 330 BDT. Other quantities are not price-verified.
+- There is no payment provider SDK, order database, signed payment webhook, order-status API or in-game fulfillment worker in this repository.
+
+Before enabling real purchases, the owner must choose and configure a provider (for example, Tebex only if the owner chooses it), supply provider credentials as **server-only Vercel environment variables**, and approve the real product IDs, prices, currency, perks and policies. The backend must create checkout sessions using server-side product data, validate the Minecraft username and provider response, verify signed webhooks, make order processing idempotent, retain a minimal order record, and deliver purchased ranks/points through a trusted server integration. Cancellation, failed payment, refund and fulfillment states also need real routes and tests.
+
+Do not set paymentConfigured to true or enable a checkout button until those server-side pieces exist and have been tested. No payment secret belongs in src/config.js, client JavaScript, .env.example or public runtime configuration.
