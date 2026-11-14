@@ -85,7 +85,7 @@ function header(path) {
 function footer() {
   return `<footer class="site-footer"><div class="footer-main"><div class="footer-brand-group"><div class="footer-brand"><a class="brand" href="/" aria-label="${esc(siteName)} home"><img src="/logo.png" alt="" width="44" height="44"><span>${brandMarkup()}</span></a><p>${esc(server.description)}</p>${discordLink('Join our Discord')}</div>
   <div class="footer-server"><span class="card-eyebrow">Server address</span><div class="footer-address"><code>${server.javaAddress}</code><button class="copy-button" data-copy="${server.javaAddress}" aria-label="Copy WillowCraft server address">Copy</button></div></div>
-  <div class="footer-developer"><div class="developer-card"><img src="/assets/syxlor-mark.png" alt="Syxlor Studios geometric S mark" width="44" height="44"><div><b>SYXLOR</b><p>Syxlor Studios builds polished Minecraft, Discord, and web systems.</p><div class="developer-domains"><a href="https://syxlor.xyz" target="_blank" rel="noopener noreferrer">syxlor.xyz</a><a href="https://studios.syxlor.xyz" target="_blank" rel="noopener noreferrer">studios.syxlor.xyz</a></div></div></div><p class="developer-credit"><span>Developer:&nbsp;</span><b>Rayhan</b></p></div></div>
+  <div class="footer-developer"><div class="developer-card"><img src="/assets/syxlor-mark.png" alt="Syxlor Studios geometric S mark" width="44" height="44"><div><b>SYXLOR</b><p>Syxlor Studios builds polished Minecraft, Discord, and web systems.</p><div class="developer-domains"><a href="https://syxlor.xyz" target="_blank" rel="noopener noreferrer">syxlor.xyz</a><a href="https://studios.syxlor.xyz" target="_blank" rel="noopener noreferrer">studios.syxlor.xyz</a></div></div></div><p class="developer-credit"><span>Lead developer:&nbsp;</span><a href="/team/tasfiq"><b>Tasfiq Ahmed</b></a></p></div></div>
   ${Object.entries(footerNav).map(([heading,items])=>`<div class="footer-col"><h3>${heading}</h3>${items.map(item=>item.external?`<a href="${item.href}" target="_blank" rel="noopener noreferrer">${item.label}</a>`:link(item.href,item.label)).join('')}</div>`).join('')}</div>
   <div class="footer-bottom"><span>© <span id="year">${new Date().getFullYear()}</span> ${esc(siteName)}</span><span class="footer-note">Made for the worlds we build together <span aria-hidden="true">✳</span></span><a href="#main">Back to top ↑</a></div></footer>`;
 }
@@ -119,9 +119,10 @@ function home() {
 }
 
 function about() {
+  const owners = team.filter(member => member.roles.some(role => role.toLowerCase() === 'owner')).map(member => member.ign).join(' · ') || 'See the team directory';
   return `${pageHead('The WillowCraft way', 'A world worth<br><em>settling into.</em>', server.description, `${primary('/how-to-join','Come join us')}${discordLink()}`)}
   <section class="section split-story"><div class="story-mark"><img src="/logo.png" alt="WillowCraft tree emblem"><span>GROW AT YOUR OWN PACE</span></div><div><div class="section-label">Survival, shared</div><h2>Find your rhythm<br>in the <em>forest.</em></h2><p>WillowCraft is a custom-featured Survival SMP shaped around exploration, building, and the people who bring a world to life. Make a home, trade with neighbors, and discover what the world has to offer.</p><p>There’s no single way to play. Settle in at your own pace and let the community become part of your story.</p></div></section>
-  <section class="section about-facts"><div class="section-label">A few roots</div><div class="facts-grid">${[['Founded', server.founded], ['Based in', server.region], ['Languages', server.languages.join(' · ')], ['Owner', server.owner]].map(([label,value])=>`<article class="fact-card"><small>${label}</small><b>${esc(value)}</b></article>`).join('')}</div><p class="owner-note">Server statistics and infrastructure claims are kept unpublished until the owner confirms them.</p></section>
+  <section class="section about-facts"><div class="section-label">A few roots</div><div class="facts-grid">${[['Founded', server.founded], ['Based in', server.region], ['Languages', server.languages.join(' · ')], ['Ownership', owners]].map(([label,value])=>`<article class="fact-card"><small>${label}</small><b>${esc(value)}</b></article>`).join('')}</div><p class="owner-note">Server statistics and infrastructure claims are kept unpublished until the owner confirms them.</p></section>
   <section class="section infra-section"><div class="section-heading"><div><div class="section-label">Built for the journey</div><h2>Server <em>infrastructure.</em></h2></div></div><div class="owner-note infra-pending">Technical specifications are awaiting owner verification and are not displayed as confirmed claims.</div></section>
   <section class="section feature-section"><div class="section-heading"><div><div class="section-label">What awaits</div><h2>Space to make it <em>yours.</em></h2></div></div>${featuresGrid()}</section>
   <section class="section community-band"><div class="community-seal">♡</div><div><div class="section-label">Come say hello</div><h2>Every great world<br>starts with <em>hello.</em></h2><p>Join the official Discord for questions, support, and the latest server details.</p></div>${discordLink()}</section>`;
@@ -530,7 +531,22 @@ function bindInteractions() {
   });
   updateThemeButton();
   const menu = $('.menu-toggle'); const mobile = $('#mobile-nav');
-  menu?.addEventListener('click', () => { const open = menu.getAttribute('aria-expanded') !== 'true'; menu.setAttribute('aria-expanded', String(open)); menu.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation'); mobile.hidden = !open; document.body.classList.toggle('menu-open', open); });
+  const closeMobileMenu = () => {
+    if (!menu || !mobile) return;
+    menu.setAttribute('aria-expanded', 'false');
+    menu.setAttribute('aria-label', 'Open navigation');
+    mobile.hidden = true;
+    document.body.classList.remove('menu-open');
+  };
+  menu?.addEventListener('click', () => {
+    const open = menu.getAttribute('aria-expanded') !== 'true';
+    menu.setAttribute('aria-expanded', String(open));
+    menu.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    mobile.hidden = !open;
+    document.body.classList.toggle('menu-open', open);
+  });
+  mobile?.querySelectorAll('a').forEach(anchor => anchor.addEventListener('click', closeMobileMenu));
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMobileMenu(); });
   const audioPanel = $('#audio-panel');
   const audioPanelToggle = $('.nav-audio-toggle');
   audioPanelToggle?.addEventListener('click', () => {
