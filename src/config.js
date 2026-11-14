@@ -113,3 +113,11 @@ export const faq = [
   { category: 'Support & community', q: 'How do I recover my account password?', a: 'This website cannot reset Minecraft account passwords. Use the official recovery process for your account provider; never send a password to staff.' },
   { category: 'Gameplay', q: 'What are the PvP rules?', a: 'A separate PvP policy has not been supplied. Check the official rules channel or ask staff before a disputed PvP interaction.' }
 ];
+
+// Team roster. src/app.js imports these, so they must stay exported even while empty.
+// Member shape: { slug, ign, name, displayName?, title?, roles: [...], departments: [...ids],
+//   featured?, bio: [...paragraphs], responsibilities?: [...], skills?: [{ title, items }], links?: [{ label, href }] }
+// `roles` must match keys of `roleDetails`; `departments` ids must match entries in `departments`.
+export const departments = [];
+export const roleDetails = {};
+export const team = [];

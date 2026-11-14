@@ -220,6 +220,7 @@ function teamMemberCard(member, index) {
   </a>`;
 }
 function staffPage() {
+  if (!team.length) return `${pageHead('Community team', 'The people behind<br><em>the forest.</em>', 'Meet the owners, managers, developers, and moderators who keep WillowCraft running and welcoming.')}<section class="section empty-state"><div class="empty-art" aria-hidden="true"><span>♡</span><i></i><i></i><i></i></div><div class="eyebrow"><span class="eyebrow-dot"></span>Meet the team</div><h2>The team roster is coming soon.</h2><p>Staff profiles will appear here once they are published. In the meantime, the team is easy to find on Discord.</p>${discordLink('Join the Discord')}</section>`;
   const owners = team.filter(member => member.departments.includes('ownership')).length;
   return `<section class="team-hero">
     <div class="team-hero-glow" aria-hidden="true"></div>
@@ -345,14 +346,15 @@ function render(path, animate = false, restoreY = 0) {
   if (server.maintenanceMode && clean !== '/maintenance') clean = '/maintenance';
   currentPath = clean;
   const article = clean.startsWith('/announcements/') ? server.announcements.find(item=>item.slug===articleSlug(clean)) : null;
-  const pageTitle = (titles[clean]?.[0] || article?.title || (routes[clean] ? clean.slice(1).replaceAll('-', ' ') : 'Page not found')).replaceAll('WillowCraft', siteName);
+  const teamMember = clean.startsWith('/team/') ? teamBySlug(clean.slice('/team/'.length)) : null;
+  const pageTitle = (titles[clean]?.[0] || article?.title || teamMember?.name || (routes[clean] ? clean.slice(1).replaceAll('-', ' ') : 'Page not found')).replaceAll('WillowCraft', siteName);
   document.title = `${pageTitle} · ${siteName}`;
   const description = (clean === '/' ? server.description : titles[clean]?.[1] || article?.summary || server.description).replaceAll('WillowCraft', siteName);
   $('meta[name="description"]').content = description;
   document.body.classList.remove('menu-open');
   $('#site-header').innerHTML = header(clean);
   $('#site-footer').innerHTML = applyConfiguredName(footer());
-  main.innerHTML = applyConfiguredName(routes[clean] ? routes[clean]() : clean.startsWith('/announcements/') ? announcementArticle(clean) : notFound());
+  main.innerHTML = applyConfiguredName(routes[clean] ? routes[clean]() : clean.startsWith('/announcements/') ? announcementArticle(clean) : clean.startsWith('/team/') ? teamProfilePage(clean) : notFound());
   main.classList.toggle('page-enter', animate);
   requestAnimationFrame(() => main.classList.remove('page-enter'));
   if (!location.hash) window.scrollTo({ top: restoreY, behavior: animate && !restoreY && !matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto' });
@@ -480,7 +482,7 @@ document.addEventListener('click', e => {
   if (!a || a.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.origin !== location.origin) return;
   const url = new URL(a.href);
   const nextPath = url.pathname.replace(/\/$/, '') || '/';
-  const knownPath = routes[nextPath] || (nextPath.startsWith('/announcements/') && server.announcements.some(item=>item.slug===articleSlug(nextPath)));
+  const knownPath = routes[nextPath] || (nextPath.startsWith('/announcements/') && server.announcements.some(item=>item.slug===articleSlug(nextPath))) || (nextPath.startsWith('/team/') && teamBySlug(nextPath.slice('/team/'.length)));
   if (!knownPath) return;
   e.preventDefault(); history.replaceState({ ...(history.state || {}), scrollY: window.scrollY }, ''); history.pushState({ scrollY: 0 }, '', `${url.pathname}${url.hash}`); render(url.pathname, true);
 });
