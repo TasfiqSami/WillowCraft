@@ -118,6 +118,67 @@ export const faq = [
 // Member shape: { slug, ign, name, displayName?, title?, roles: [...], departments: [...ids],
 //   featured?, bio: [...paragraphs], responsibilities?: [...], skills?: [{ title, items }], links?: [{ label, href }] }
 // `roles` must match keys of `roleDetails`; `departments` ids must match entries in `departments`.
-export const departments = [];
-export const roleDetails = {};
-export const team = [];
+export const departments = [
+  { id: 'ownership', label: 'Ownership', blurb: 'Sets the direction of WillowCraft and is ultimately responsible for the network.' },
+  { id: 'management', label: 'Server Management', blurb: 'Coordinates day-to-day operations, staff, and the experience players have on the server.' },
+  { id: 'development', label: 'Development', blurb: 'Builds and maintains the plugins, systems, and features that power the server.' },
+  { id: 'infrastructure', label: 'Infrastructure & Networking', blurb: 'Looks after the servers, proxy, and network that keep WillowCraft online.' },
+  { id: 'marketing', label: 'Marketing', blurb: 'Shares WillowCraft with new players and helps grow the community.' },
+  { id: 'moderation', label: 'Moderation', blurb: 'Keeps the world welcoming and fair by helping players and applying the rules.' }
+];
+
+export const roleDetails = {
+  'Owner': 'Sets the long-term direction and priorities of WillowCraft.',
+  'Server Manager': 'Coordinates server operations, staff, and day-to-day decisions.',
+  'Management': 'Helps run the server and supports the staff team.',
+  'Head Developer': 'Leads technical direction and development of the server’s systems.',
+  'Developer': 'Builds and maintains server plugins and features.',
+  'System Administrator': 'Maintains the servers, network, and deployments behind WillowCraft.',
+  'Marketer': 'Promotes WillowCraft and helps the community grow.',
+  'Senior Moderator': 'Helps enforce the rules, assists players, and supports the moderation team.'
+};
+
+// One entry per person. `roles` are shown as badges; `departments` (first = primary) drive filters.
+export const team = [
+  { slug: 'xripsyntax_', ign: 'xRipSyntax_', name: 'xRipSyntax_', roles: ['Owner'], departments: ['ownership'], featured: true,
+    bio: ['xRipSyntax_ is an Owner of WillowCraft, helping set the direction of the network and the community around it.'] },
+  { slug: 'araf', ign: 'Araf', name: 'Araf', roles: ['Owner'], departments: ['ownership'], featured: true,
+    bio: ['Araf is an Owner of WillowCraft, helping set the direction of the network and the community around it.'] },
+  { slug: 'tasfiq', ign: 'Tasfiq', name: 'Tasfiq Ahmed', displayName: 'Tasfiq', featured: true,
+    title: 'CEO of SYXLOR | Software Engineer & Minecraft Network Developer',
+    roles: ['Server Manager', 'Head Developer', 'System Administrator'], departments: ['management', 'development', 'infrastructure'],
+    bio: [
+      'Tasfiq Ahmed is a software engineer, Minecraft network developer, and system administrator responsible for key management and technical responsibilities at WillowCraft.',
+      'His work spans Minecraft network development, custom plugin engineering, infrastructure management, backend systems, web development, and networking.',
+      'He works across both technical leadership and hands-on engineering, helping manage the network’s development direction, technical infrastructure, and overall operations.',
+      'Outside WillowCraft, Tasfiq is the CEO of SYXLOR, where he works across software development, digital products, backend architecture, and technology operations.'
+    ],
+    responsibilities: [
+      'Server management: coordinating operations and day-to-day decisions',
+      'Development leadership: technical direction and custom plugin engineering',
+      'Infrastructure: servers, proxy, networking, and deployments'
+    ],
+    skills: [
+      { title: 'Minecraft Development', items: ['Java', 'PaperMC', 'Velocity', 'PacketEvents', 'LuckPerms', 'Custom plugin development', 'Minecraft network development'] },
+      { title: 'Web Development', items: ['Next.js', 'React', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'HTML5', 'CSS3'] },
+      { title: 'Backend Development', items: ['Node.js', 'REST APIs', 'Prisma ORM', 'Authentication', 'Backend architecture'] },
+      { title: 'Databases', items: ['PostgreSQL', 'MySQL', 'SQL', 'Database design'] },
+      { title: 'System Administration & Infrastructure', items: ['Linux', 'VPS administration', 'CloudPanel', 'Nginx', 'Docker', 'CI/CD', 'Server deployments', 'Infrastructure management'] },
+      { title: 'Development Tools', items: ['Git', 'GitHub', 'Maven', 'IntelliJ IDEA', 'Visual Studio Code'] }
+    ],
+    links: [{ label: 'Portfolio', href: 'https://www.tasfiqahmed.com' }, { label: 'SYXLOR', href: 'https://syxlor.xyz' }] },
+  { slug: 'notredspy', ign: 'NotRedspy', name: 'NotRedspy', roles: ['Management', 'Marketer'], departments: ['management', 'marketing'],
+    bio: ['NotRedspy helps manage WillowCraft and works on promoting the network to new players.'] },
+  { slug: 'itzarefin', ign: 'ItzArefin', name: 'ItzArefin', roles: ['Developer', 'Marketer'], departments: ['development', 'marketing'],
+    bio: ['ItzArefin develops features for WillowCraft and helps share the server with new players.'] },
+  { slug: 'knight_soul07', ign: 'Knight_Soul07', name: 'Knight_Soul07', roles: ['Developer'], departments: ['development'],
+    bio: ['Knight_Soul07 is a developer on the WillowCraft team.'] },
+  { slug: 'yunaa_v1', ign: 'YuNaa_V1', name: 'YuNaa_V1', roles: ['Developer'], departments: ['development'],
+    bio: ['YuNaa_V1 is a developer on the WillowCraft team.'] },
+  { slug: 'min_05', ign: 'min_05', name: 'min_05', roles: ['Senior Moderator'], departments: ['moderation'],
+    bio: ['min_05 is a Senior Moderator, helping keep WillowCraft welcoming and fair.'] },
+  { slug: 'mirazislam', ign: 'mirazislam', name: 'mirazislam', roles: ['Senior Moderator'], departments: ['moderation'],
+    bio: ['mirazislam is a Senior Moderator, helping keep WillowCraft welcoming and fair.'] },
+  { slug: 'shadow', ign: 'shadow', name: 'shadow', roles: ['Senior Moderator'], departments: ['moderation'],
+    bio: ['shadow is a Senior Moderator, helping keep WillowCraft welcoming and fair.'] }
+];

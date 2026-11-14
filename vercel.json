@@ -27,6 +27,10 @@
       "destination": "/api/runtime-theme"
     },
     {
+      "source": "/api/skin/:ign",
+      "destination": "/api/skin?ign=:ign"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -37,7 +41,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://render.crafty.gg; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         },
         {
           "key": "X-Content-Type-Options",

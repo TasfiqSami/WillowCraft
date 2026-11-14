@@ -37,6 +37,8 @@ const titles = {
   '/support': ['We’re here to help', 'For player reports, bug reports, and questions, Discord is the best place to reach the team.'],
   '/terms': ['Terms of service', 'A draft framework for WillowCraft. Owner and legal review is required before publication.'],
   '/privacy': ['Privacy policy', 'A transparent summary of what this frontend stores and what still needs owner confirmation.'],
+  '/shipping': ['Shipping & delivery', 'Delivery details for store items are still being confirmed by the owner.'],
+  '/refunds': ['Returns & refunds', 'Refund terms are still being confirmed by the owner.'],
   '/maintenance': ['Maintenance', 'WillowCraft is taking a short break for maintenance. Check Discord for updates.'],
 };
 
@@ -194,10 +196,10 @@ function placeholderArt(ign) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 function mcHead(ign, size = 128) {
-  return `<img class="mc-head" src="https://render.crafty.gg/3d/head/${encodeURIComponent(ign)}" data-mc-art="head" data-ign="${esc(ign)}" alt="${esc(ign)} Minecraft head" width="${size}" height="${size}" loading="lazy" decoding="async">`;
+  return `<img class="mc-head is-loading" src="https://render.crafty.gg/3d/head/${encodeURIComponent(ign)}" data-mc-art="head" data-ign="${esc(ign)}" alt="${esc(ign)} Minecraft head" width="${size}" height="${size}" loading="lazy" decoding="async">`;
 }
 function mcFull(ign) {
-  return `<img class="mc-full" src="https://render.crafty.gg/3d/full/${encodeURIComponent(ign)}" data-mc-art="full" data-ign="${esc(ign)}" alt="Full Minecraft character render of ${esc(ign)}" width="420" height="620" loading="eager" decoding="async" fetchpriority="high">`;
+  return `<img class="mc-full is-loading" src="https://render.crafty.gg/3d/full/${encodeURIComponent(ign)}" data-mc-art="full" data-ign="${esc(ign)}" alt="Full Minecraft character render of ${esc(ign)}" width="420" height="620" loading="eager" decoding="async" fetchpriority="high">`;
 }
 function roleBadges(member, extraClass = '') {
   return `<div class="member-roles ${extraClass}">${member.roles.map(role => `<span class="role-badge role-${roleDepartment[role] || 'development'}">${esc(role)}</span>`).join('')}</div>`;
@@ -205,7 +207,7 @@ function roleBadges(member, extraClass = '') {
 function teamMemberCard(member, index) {
   const owner = member.departments.includes('ownership');
   const primary = member.departments[0];
-  return `<a class="team-card${owner ? ' team-card-owner' : ''}${member.featured ? ' team-card-featured' : ''} reveal" href="/team/${member.slug}" data-departments="${member.departments.join(' ')}" data-search="${esc(memberSearchText(member))}" style="--delay:${Math.min(index * 45, 360)}ms">
+  return `<a class="team-card${owner ? ' team-card-owner' : ''}${member.featured ? ' team-card-featured' : ''} reveal" href="/team/${member.slug}" data-departments="${member.departments.join(' ')}" data-search="${esc(memberSearchText(member))}" data-delay="${Math.min(index * 45, 360)}">
     <div class="team-card-top">
       <span class="team-head-frame">${mcHead(member.ign, 128)}</span>
       <span class="team-card-index">${String(index + 1).padStart(2, '0')}</span>
@@ -285,7 +287,7 @@ function teamProfilePage(path) {
       ${roleBadges(member, 'profile-role-list')}
       <div class="profile-bio">${member.bio.map(paragraph => `<p>${esc(paragraph)}</p>`).join('')}</div>
       <div class="profile-actions">
-        <button class="button button-primary" type="button" data-download-skin="${esc(member.ign)}"><span>Download skin</span><b aria-hidden="true">↓</b></button>
+        <a class="button button-primary" href="/api/skin/${encodeURIComponent(member.ign)}" download="${esc(member.ign)}-skin.png" data-download-skin="${esc(member.ign)}"><span>Download skin</span><b aria-hidden="true">↓</b></a>
         ${link('/team','Back to team','button button-secondary')}
         ${(member.links || []).map(linkItem => `<a class="button button-ghost" href="${linkItem.href}" target="_blank" rel="noopener noreferrer">${esc(linkItem.label)}<span aria-hidden="true">↗</span></a>`).join('')}
       </div>
@@ -307,13 +309,79 @@ function ranksPage() {
     <section class="section rank-grid">${server.ranks.map((rank,i)=>`<article class="rank-card rank-${rank.tone}"><div class="rank-art" aria-hidden="true"><span>${i===0?'✧':i===1?'✳':'❖'}</span></div><span class="card-eyebrow">Lifetime rank</span><h2>${rank.name}</h2><div class="rank-price"><b>${rank.points.toLocaleString()}</b><span>Points</span></div><ul><li>Set up to ${rank.homes} homes</li><li>Create ${rank.shops} chestshops</li><li>Sell ${rank.ah} items on AH</li>${rank.commands.map(command=>`<li>Access <code>${command}</code></li>`).join('')}</ul>${link('/store','Purchase in Store','button button-primary')}</article>`).join('')}</section><section class="section note-band"><span class="note-icon">ⓘ</span><p>These tiers are shown as provided. Upgrade price differences, automatic detection, and delivery remain inactive until the server backend supports them.</p>${link('/store','Store details','button button-secondary')}</section>`;
 }
 
+function storeCatalog() {
+  const { minPoints, maxPoints, step, currency, prices } = server.store;
+  const ranks = server.ranks.map((rank, index) => ({
+    id: `rank-${rank.name.toLowerCase()}`, category: 'ranks', name: `${rank.name} Rank`, tone: rank.tone,
+    mark: index === 0 ? '✧' : index === 1 ? '✳' : '❖', summary: 'A lifetime rank with no monthly fee.', points: rank.points,
+    perks: [`Set up to ${rank.homes} homes`, `Create ${rank.shops} chestshops`, `Sell ${rank.ah} items on the auction house`, ...rank.commands.map(command => `Access ${command}`)]
+  }));
+  const reference = prices[0];
+  const points = {
+    id: 'points', category: 'points', name: 'WillowCraft Points', tone: 'gold', mark: '◈', from: true, points: minPoints,
+    summary: 'Points are the unit that store rank prices are listed in.',
+    perks: [`Choose from ${minPoints.toLocaleString()} to ${maxPoints.toLocaleString()} points, in steps of ${step}`, ...(reference ? [`Reference listing: ${reference.points.toLocaleString()} points for ${reference.price} ${currency}`] : [])]
+  };
+  return [...ranks, points];
+}
+
 function storePage() {
-  const { minPoints, maxPoints, step } = server.store;
-  const packages = server.store.packages || [];
+  const products = storeCatalog();
+  const { minPoints, maxPoints, step, currency } = server.store;
   const defaultPoints = server.store.defaultPoints || minPoints;
   const initialPrice = server.store.prices.find(item => item.points === defaultPoints);
-  return `${pageHead('WillowCraft Points', 'A store, ready when<br><em>the server is.</em>', 'The reference store lists 700 points for 330 BDT. Prices for other quantities are unconfirmed, and checkout needs a complete price catalog and payment provider.')}
-    <section class="section store-layout"><div class="store-main"><form class="store-form" id="store-form" novalidate><label>Minecraft username<input name="username" autocomplete="username" maxlength="16" placeholder="Your in-game name" required pattern="[A-Za-z0-9_]{3,16}"><small>Enter the username that should receive the points. Never enter your password.</small></label><label>Points quantity<input name="quantity" type="number" min="${minPoints}" max="${maxPoints}" step="${step}" value="${defaultPoints}" required><small>From ${minPoints.toLocaleString()} to ${maxPoints.toLocaleString()} points, in steps of ${step}.</small></label><div class="store-price-note"><span>Price</span><b data-store-price>${initialPrice ? `${initialPrice.price} ${server.store.currency}` : 'Not configured'}</b><small data-store-price-note>${initialPrice ? `The reference listing for ${initialPrice.points.toLocaleString()} points; prices for other tiers are unconfirmed.` : 'Approved package prices are not available, so no monetary total is shown.'}</small></div><button class="button button-primary" type="submit">Add points to cart <span aria-hidden="true">＋</span></button></form><div class="store-packages"><div class="section-label">Points packages</div><h2>${packages.length ? 'Choose a package' : 'Packages are not configured'}</h2><p>${packages.length ? 'Configured quantities and prices come from the approved store catalog.' : 'No full package price table is configured. Matching bundles can be priced when the official tiers are confirmed.'}</p>${packages.length ? `<div class="package-grid">${packages.map(pack=>`<button type="button" class="package-card" data-amount="${Number(pack.points)}"><b>${Number(pack.points).toLocaleString()}</b><span>Points</span><small>${esc(pack.price)} ${esc(server.store.currency)}</small></button>`).join('')}</div>` : ''}</div></div><aside class="cart-panel"><div class="section-label">Your cart</div><h2>Order summary</h2><div class="cart-items" aria-live="polite"><p class="cart-empty">Your cart is empty.</p></div><div class="cart-total"><span>Order total</span><b>Unavailable</b></div><button class="button button-secondary checkout-disabled" type="button" disabled>Checkout unavailable</button><p>Checkout needs the approved price table, a payment provider, and an order backend. This site will not simulate a purchase or delivery.</p><div class="support-note">Need help with an existing store order? ${link('/support','Contact support','arrow-link')}</div></aside></section>`;
+  const productCard = product => `<article class="product-card tone-${esc(product.tone)} reveal" data-product="${product.id}" data-category="${product.category}" data-search="${esc([product.name, product.summary, ...product.perks].join(' ').toLowerCase())}" data-sort-price="${product.points}" data-sort-name="${esc(product.name.toLowerCase())}">
+      <div class="product-art" aria-hidden="true"><span>${product.mark}</span></div>
+      <div class="product-body"><span class="card-eyebrow">${product.category === 'ranks' ? 'Lifetime rank' : 'Store currency'}</span><h3>${esc(product.name)}</h3><p>${esc(product.summary)}</p>
+        <ul class="product-perks">${product.perks.slice(0, 3).map(perk => `<li>${esc(perk)}</li>`).join('')}</ul></div>
+      <div class="product-foot"><div class="product-price"><small>${product.from ? 'From' : 'Price'}</small><b>${product.points.toLocaleString()}</b><span>Points</span></div>
+        <div class="product-actions"><button class="button button-secondary" type="button" data-product-details="${product.id}">Details</button><button class="button button-primary" type="button" data-product-add="${product.id}">${product.category === 'ranks' ? 'Add to cart' : 'Choose amount'}</button></div></div></article>`;
+  const compareRows = [
+    ['Price', rank => `${rank.points.toLocaleString()} Points`], ['Homes', rank => rank.homes], ['Chestshops', rank => rank.shops],
+    ['Auction house items', rank => rank.ah], ['Commands', rank => rank.commands.map(command => `<code>${esc(command)}</code>`).join(' ')]
+  ];
+  return `<div id="store-root">
+  <section class="store-hero"><div class="store-hero-glow" aria-hidden="true"></div><div class="store-hero-inner">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>WillowCraft store</div>
+    <h1>Your adventure.<br><em>Your upgrades.</em></h1>
+    <p>Explore lifetime ranks and WillowCraft Points, and see exactly what each one includes before you decide.</p>
+    <div class="hero-actions"><a class="button button-primary" href="#catalog">Browse the store<span aria-hidden="true">↓</span></a><a class="button button-secondary" href="#compare">Compare ranks</a><button class="button button-ghost store-cart-open" type="button" data-cart-open>Cart <span class="cart-badge" data-cart-count>0</span></button></div>
+    <div class="store-status" role="note"><span aria-hidden="true">ⓘ</span><p><b>Checkout is not live yet.</b> You can build a cart to see what you want, but no payment is taken and nothing is delivered until a payment provider is connected.</p></div>
+  </div></section>
+  <section class="section store-catalog" id="catalog">
+    <div class="section-heading"><div><div class="section-label">The catalog</div><h2>Find your <em>upgrade.</em></h2></div></div>
+    <div class="store-toolbar">
+      <div class="store-chips" role="group" aria-label="Filter products by category"><button class="filter-chip" type="button" data-store-category="all" aria-pressed="true">All</button><button class="filter-chip" type="button" data-store-category="ranks" aria-pressed="false">Ranks</button><button class="filter-chip" type="button" data-store-category="points" aria-pressed="false">Points</button></div>
+      <label class="store-field store-search"><span class="sr-only">Search products</span><input id="store-search" type="search" placeholder="Search ranks and perks" autocomplete="off"></label>
+      <label class="store-field store-sort"><span class="sr-only">Sort products</span><select id="store-sort"><option value="featured">Featured order</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="name">Name</option></select></label>
+      <label class="store-field store-username"><span class="sr-only">Minecraft username</span><input id="store-username" name="username" autocomplete="username" maxlength="16" placeholder="Your Minecraft username" pattern="[A-Za-z0-9_]{3,16}"></label>
+    </div>
+    <p class="store-count" id="store-count" aria-live="polite">${products.length} products</p>
+    <div class="product-grid" id="product-grid">${products.map(productCard).join('')}</div>
+    <div class="store-empty" id="store-empty" hidden><span aria-hidden="true">✳</span><b>Nothing matches that search.</b><p>Try a different word or clear the filters.</p></div>
+  </section>
+  <section class="section store-compare" id="compare"><div class="section-heading"><div><div class="section-label">Side by side</div><h2>Compare the <em>ranks.</em></h2></div></div>
+    <div class="compare-scroll"><table class="compare-table"><caption class="sr-only">Comparison of WillowCraft ranks</caption><thead><tr><th scope="col">Included</th>${server.ranks.map(rank => `<th scope="col" class="tone-${esc(rank.tone)}">${esc(rank.name)}</th>`).join('')}</tr></thead>
+    <tbody>${compareRows.map(([label, value]) => `<tr><th scope="row">${label}</th>${server.ranks.map(rank => `<td>${value(rank)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <p class="store-footnote">Rank details are shown as supplied by the server. Upgrade pricing between ranks has not been confirmed.</p></section>
+  <section class="section store-topup" id="topup"><div class="topup-layout">
+    <div class="topup-copy"><div class="section-label">Points</div><h2>Choose your <em>amount.</em></h2><p>Pick a points quantity from ${minPoints.toLocaleString()} to ${maxPoints.toLocaleString()}, in steps of ${step}. Only the reference listing of ${(server.store.prices[0]?.points || defaultPoints).toLocaleString()} points for ${server.store.prices[0]?.price ?? '—'} ${esc(currency)} has a confirmed price.</p></div>
+    <form class="store-form" id="store-form" novalidate><label>Points quantity<input name="quantity" type="number" min="${minPoints}" max="${maxPoints}" step="${step}" value="${defaultPoints}" required><small>From ${minPoints.toLocaleString()} to ${maxPoints.toLocaleString()} points, in steps of ${step}.</small></label>
+      <div class="store-price-note"><span>Price</span><b data-store-price>${initialPrice ? `${initialPrice.price} ${esc(currency)}` : 'Not configured'}</b><small data-store-price-note>${initialPrice ? `The reference listing for ${initialPrice.points.toLocaleString()} points; other quantities are unconfirmed.` : 'No approved price is available for this quantity.'}</small></div>
+      <button class="button button-primary" type="submit">Add points to cart <span aria-hidden="true">＋</span></button></form></div></section>
+  <section class="section store-trust"><div class="section-heading"><div><div class="section-label">Before you buy</div><h2>Know what to <em>expect.</em></h2></div></div>
+    <div class="trust-grid">
+      <article class="trust-card"><span aria-hidden="true">◈</span><h3>Digital items</h3><p>Everything here is a virtual, in-game item for WillowCraft. Nothing is shipped.</p></article>
+      <article class="trust-card"><span aria-hidden="true">⌛</span><h3>Delivery</h3><p>Delivery is not set up yet, so no delivery time is promised. See the ${link('/shipping', 'delivery page')} for status.</p></article>
+      <article class="trust-card"><span aria-hidden="true">↺</span><h3>Refunds</h3><p>Refund terms are still being written. Read the current ${link('/refunds', 'refund page')} before purchasing becomes available.</p></article>
+      <article class="trust-card"><span aria-hidden="true">♡</span><h3>Support</h3><p>Questions about a rank or order are handled in Discord. Never share your password or payment details. ${link('/support', 'How support works')}</p></article>
+    </div><p class="store-footnote">See also the ${link('/terms', 'Terms of service')} and ${link('/privacy', 'Privacy policy')} drafts.</p></section>
+  <dialog class="store-dialog product-dialog" id="product-dialog" aria-labelledby="product-dialog-title"><div id="product-dialog-body"></div></dialog>
+  <dialog class="store-dialog cart-drawer" id="cart-drawer" aria-labelledby="cart-title"><div class="cart-drawer-head"><h2 id="cart-title">Your cart</h2><button class="icon-button" type="button" data-close-dialog aria-label="Close cart">✕</button></div>
+    <div class="cart-lines" id="cart-lines" aria-live="polite"></div><div class="cart-summary" id="cart-summary"></div>
+    <button class="button button-secondary checkout-disabled" type="button" disabled>Checkout unavailable</button>
+    <p class="cart-note">Checkout needs an approved price table, a payment provider and an order backend. This cart is a preview only; nothing is purchased or delivered.</p></dialog>
+  </div>`;
 }
 
 function leaderboardPage() { return `${pageHead('WillowCraft supporters', 'Community, <em>celebrated.</em>', 'Only verified store purchases and approved public player names can appear here.') }<section class="section empty-state"><div class="empty-art" aria-hidden="true"><span>✧</span><i></i><i></i><i></i></div><div class="eyebrow"><span class="eyebrow-dot"></span>Leaderboard</div><h2>No verified entries yet.</h2><p>Supporter rankings will appear after the store backend provides verified, public records.</p></section>`; }
@@ -340,6 +408,7 @@ for (const g of guides) routes[g.path] = () => guidePage(g.path);
 
 let currentPath = '/';
 const storeCart = [];
+let storeUsername = '';
 function articleSlug(path) { try { return decodeURIComponent(path.slice('/announcements/'.length)); } catch { return null; } }
 function render(path, animate = false, restoreY = 0) {
   let clean = path.replace(/\/$/, '') || '/';
@@ -361,6 +430,92 @@ function render(path, animate = false, restoreY = 0) {
   bindInteractions();
   const hash = location.hash;
   if (hash) requestAnimationFrame(() => document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView());
+}
+
+function bindStore(root) {
+  const catalog = storeCatalog();
+  const byId = id => catalog.find(product => product.id === id);
+  const cards = [...root.querySelectorAll('.product-card')];
+  const order = new Map(cards.map((card, index) => [card, index]));
+  const grid = $('#product-grid', root); const empty = $('#store-empty', root); const count = $('#store-count', root);
+  const usernameInput = $('#store-username', root);
+  const cartDialog = $('#cart-drawer', root); const productDialog = $('#product-dialog', root);
+  usernameInput.value = storeUsername;
+
+  let category = 'all'; let query = ''; let sort = 'featured';
+  const applyFilters = () => {
+    let shown = 0;
+    cards.forEach(card => { const match = (category === 'all' || card.dataset.category === category) && (!query || card.dataset.search.includes(query)); card.hidden = !match; if (match) shown++; });
+    [...cards].sort((a, b) => sort === 'price-asc' ? a.dataset.sortPrice - b.dataset.sortPrice : sort === 'price-desc' ? b.dataset.sortPrice - a.dataset.sortPrice : sort === 'name' ? a.dataset.sortName.localeCompare(b.dataset.sortName) : order.get(a) - order.get(b)).forEach(card => grid.appendChild(card));
+    empty.hidden = shown > 0; count.textContent = `${shown} ${shown === 1 ? 'product' : 'products'}`;
+  };
+  root.querySelectorAll('[data-store-category]').forEach(button => button.addEventListener('click', () => {
+    category = button.dataset.storeCategory;
+    root.querySelectorAll('[data-store-category]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+    applyFilters();
+  }));
+  $('#store-search', root).addEventListener('input', event => { query = event.currentTarget.value.trim().toLowerCase(); applyFilters(); });
+  $('#store-sort', root).addEventListener('change', event => { sort = event.currentTarget.value; applyFilters(); });
+
+  const requireUsername = () => {
+    const value = usernameInput.value.trim();
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(value)) {
+      usernameInput.setCustomValidity('Enter a Minecraft username from 3 to 16 letters, numbers, or underscores.');
+      usernameInput.reportValidity(); usernameInput.setCustomValidity(''); usernameInput.focus();
+      return null;
+    }
+    storeUsername = value; return value;
+  };
+
+  const renderCart = () => {
+    $('#cart-lines', root).innerHTML = storeCart.length ? storeCart.map(item => `<div class="cart-line"><span><b>${esc(item.label)}</b><small>For ${esc(item.username)}</small></span><span class="cart-line-price">${esc(item.priceLabel)}</span><button type="button" class="cart-remove" data-remove="${esc(item.id)}" aria-label="Remove ${esc(item.label)} for ${esc(item.username)}">Remove</button></div>`).join('') : '<p class="cart-empty">Your cart is empty. Add a rank or some points to see them here.</p>';
+    const rankPoints = storeCart.filter(item => item.kind === 'rank').reduce((sum, item) => sum + item.points, 0);
+    const topups = storeCart.filter(item => item.kind === 'points');
+    const priced = topups.length > 0 && topups.every(item => item.price);
+    $('#cart-summary', root).innerHTML = storeCart.length ? `${rankPoints ? `<div><span>Rank cost</span><b>${rankPoints.toLocaleString()} Points</b></div>` : ''}${topups.length ? `<div><span>Points top-up</span><b>${priced ? `${topups.reduce((sum, item) => sum + item.price, 0)} ${esc(server.store.currency)}` : 'Price not configured'}</b></div>` : ''}` : '';
+    root.querySelectorAll('[data-cart-count]').forEach(badge => { badge.textContent = String(storeCart.length); });
+    root.querySelectorAll('#cart-lines [data-remove]').forEach(button => button.addEventListener('click', () => { const index = storeCart.findIndex(item => item.id === button.dataset.remove); if (index >= 0) storeCart.splice(index, 1); renderCart(); }));
+  };
+  const addRank = product => {
+    const username = requireUsername(); if (!username) return;
+    if (storeCart.some(item => item.productId === product.id && item.username === username)) { showToast(`${product.name} is already in your cart.`); return; }
+    storeCart.push({ id: crypto.randomUUID(), productId: product.id, kind: 'rank', label: product.name, username, points: product.points, priceLabel: `${product.points.toLocaleString()} Points` });
+    renderCart(); showToast(`${product.name} added to your cart. Checkout is not configured.`);
+  };
+  const goToTopup = () => { $('#topup', root).scrollIntoView(); $('#store-form', root).elements.quantity.focus(); };
+
+  const openDetails = id => {
+    const product = byId(id); if (!product) return;
+    $('#product-dialog-body', root).innerHTML = `<div class="product-dialog-art tone-${esc(product.tone)}" aria-hidden="true"><span>${product.mark}</span></div><div class="product-dialog-copy"><span class="card-eyebrow">${product.category === 'ranks' ? 'Lifetime rank' : 'Store currency'}</span><h2 id="product-dialog-title">${esc(product.name)}</h2><p>${esc(product.summary)}</p><h3>What is included</h3><ul class="product-perks product-perks-full">${product.perks.map(perk => `<li>${esc(perk)}</li>`).join('')}</ul><div class="product-price"><small>${product.from ? 'From' : 'Price'}</small><b>${product.points.toLocaleString()}</b><span>Points</span></div><div class="product-actions"><button class="button button-primary" type="button" data-dialog-add="${product.id}">${product.category === 'ranks' ? 'Add to cart' : 'Choose amount'}</button><button class="button button-secondary" type="button" data-close-dialog>Close</button></div></div>`;
+    productDialog.querySelector('[data-dialog-add]').addEventListener('click', () => { if (product.category === 'ranks') { addRank(product); } else { productDialog.close(); goToTopup(); } });
+    productDialog.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => productDialog.close()));
+    productDialog.showModal();
+  };
+  root.querySelectorAll('[data-product-details]').forEach(button => button.addEventListener('click', () => openDetails(button.dataset.productDetails)));
+  root.querySelectorAll('[data-product-add]').forEach(button => button.addEventListener('click', () => { const product = byId(button.dataset.productAdd); if (product.category === 'ranks') addRank(product); else goToTopup(); }));
+
+  [cartDialog, productDialog].forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); }));
+  cartDialog.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => cartDialog.close()));
+  root.querySelectorAll('[data-cart-open]').forEach(button => button.addEventListener('click', () => { renderCart(); cartDialog.showModal(); }));
+
+  const form = $('#store-form', root);
+  const updatePrice = () => {
+    const quantity = Number(form.elements.quantity.value);
+    const price = server.store.prices.find(item => item.points === quantity);
+    $('[data-store-price]', root).textContent = price ? `${price.price} ${server.store.currency}` : 'Not configured';
+    $('[data-store-price-note]', root).textContent = price ? `This exact ${price.points.toLocaleString()}-point amount is currently listed on the reference store. Other tier prices are not verified.` : 'No configured price matches this quantity. No price is calculated for other amounts.';
+  };
+  form.elements.quantity.addEventListener('input', updatePrice);
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const username = requireUsername(); if (!username) return;
+    const quantity = Number(form.elements.quantity.value);
+    if (!Number.isInteger(quantity) || quantity < server.store.minPoints || quantity > server.store.maxPoints || quantity % server.store.step !== 0) { form.elements.quantity.setCustomValidity(`Enter ${server.store.minPoints}–${server.store.maxPoints} points in increments of ${server.store.step}.`); form.reportValidity(); form.elements.quantity.setCustomValidity(''); return; }
+    const price = server.store.prices.find(item => item.points === quantity)?.price ?? null;
+    storeCart.push({ id: crypto.randomUUID(), productId: 'points', kind: 'points', label: `${quantity.toLocaleString()} Points`, username, quantity, price, priceLabel: price ? `${price} ${server.store.currency}` : 'Price not configured' });
+    renderCart(); showToast('Points added to your cart. Checkout is not configured.');
+  });
+  renderCart();
 }
 
 function bindInteractions() {
@@ -412,34 +567,27 @@ function bindInteractions() {
     const feature = $('.announcements-featured');
     if (feature) feature.hidden = selected !== 'All' && feature.dataset.category !== selected;
   }));
-  const storeForm = $('#store-form');
-  if (storeForm) {
-    const renderCart = () => {
-      const host = $('.cart-items');
-      host.innerHTML = storeCart.length ? storeCart.map(item => `<div class="cart-line"><span><b>${esc(item.quantity.toLocaleString())} points</b><small>For ${esc(item.username)}</small></span><button type="button" class="cart-remove" data-remove="${item.id}" aria-label="Remove ${esc(item.quantity)} points for ${esc(item.username)}">Remove</button><small>${item.price ? `${item.price} ${esc(server.store.currency)}` : 'Price not configured'}</small></div>`).join('') : '<p class="cart-empty">Your cart is empty.</p>';
-      const knownTotal = storeCart.length === 1 ? storeCart[0].price : null;
-      $('.cart-total b').textContent = knownTotal ? `${knownTotal} ${server.store.currency}` : 'Unavailable';
-      host.querySelectorAll('[data-remove]').forEach(button => button.addEventListener('click', () => { const i=storeCart.findIndex(item=>item.id===button.dataset.remove); if(i>=0) storeCart.splice(i,1); renderCart(); }));
+  const storeRoot = $('#store-root');
+  if (storeRoot) bindStore(storeRoot);
+  document.querySelectorAll('[data-delay]').forEach(el => el.style.setProperty('--delay', `${el.dataset.delay}ms`));
+  document.querySelectorAll('img[data-mc-art]').forEach(img => { if (img.complete) (img.naturalWidth ? settleArt(img) : fallbackArt(img)); });
+  const teamGrid = $('#team-grid');
+  if (teamGrid) {
+    let dept = 'all'; let query = '';
+    const applyTeamFilter = () => {
+      let shown = 0;
+      teamGrid.querySelectorAll('.team-card').forEach(card => {
+        const match = (dept === 'all' || card.dataset.departments.split(' ').includes(dept)) && (!query || card.dataset.search.includes(query));
+        card.hidden = !match; if (match) shown++;
+      });
+      $('#team-empty').hidden = shown > 0;
     };
-    renderCart();
-    const updatePrice = () => {
-      const quantity = Number(storeForm.elements.quantity.value);
-      const price = server.store.prices.find(item => item.points === quantity);
-      $('[data-store-price]').textContent = price ? `${price.price} ${server.store.currency}` : 'Not configured';
-      $('[data-store-price-note]').textContent = price ? `This exact ${price.points.toLocaleString()}-point amount is currently listed on the reference store. Other tier prices are not verified.` : 'No configured price matches this quantity. No price is calculated for other amounts.';
-    };
-    storeForm.elements.quantity.addEventListener('input', updatePrice);
-    storeForm.querySelectorAll('[data-amount]').forEach(button => button.addEventListener('click', () => { storeForm.elements.quantity.value = button.dataset.amount; }));
-    document.querySelectorAll('.package-card').forEach(button => button.addEventListener('click', () => { storeForm.elements.quantity.value = button.dataset.amount; storeForm.elements.quantity.focus(); }));
-    storeForm.addEventListener('submit', event => {
-      event.preventDefault();
-      const username = storeForm.elements.username.value.trim();
-      const quantity = Number(storeForm.elements.quantity.value);
-      if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) { storeForm.elements.username.setCustomValidity('Enter a Minecraft username from 3 to 16 letters, numbers, or underscores.'); storeForm.reportValidity(); storeForm.elements.username.setCustomValidity(''); return; }
-      if (!Number.isInteger(quantity) || quantity < server.store.minPoints || quantity > server.store.maxPoints || quantity % server.store.step !== 0) { storeForm.elements.quantity.setCustomValidity(`Enter ${server.store.minPoints}–${server.store.maxPoints} points in increments of ${server.store.step}.`); storeForm.reportValidity(); storeForm.elements.quantity.setCustomValidity(''); return; }
-      const price = server.store.prices.find(item => item.points === quantity)?.price ?? null;
-      storeCart.push({ id: crypto.randomUUID(), username, quantity, price }); renderCart(); showToast('Added to your cart. Checkout is not configured.');
-    });
+    document.querySelectorAll('[data-team-filter]').forEach(btn => btn.addEventListener('click', () => {
+      dept = btn.dataset.teamFilter;
+      document.querySelectorAll('[data-team-filter]').forEach(other => other.setAttribute('aria-pressed', String(other === btn)));
+      applyTeamFilter();
+    }));
+    $('#team-search')?.addEventListener('input', event => { query = event.currentTarget.value.trim().toLowerCase(); applyTeamFilter(); });
   }
   document.querySelectorAll('.faq-item summary').forEach(summary => summary.addEventListener('click', e => {
     const item = e.currentTarget.parentElement;
@@ -458,6 +606,17 @@ function setEdition(edition) {
 }
 let toastTimer;
 function showToast(msg) { const toast = $('#toast'); toast.textContent = msg; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2400); }
+
+function settleArt(img) { img.classList.remove('is-loading'); }
+function fallbackArt(img) {
+  if (img.dataset.fallback) return;
+  img.dataset.fallback = '1';
+  img.src = placeholderArt(img.dataset.ign);
+  img.classList.remove('is-loading');
+  img.classList.add('is-fallback');
+}
+document.addEventListener('load', event => { if (event.target?.dataset?.mcArt) settleArt(event.target); }, true);
+document.addEventListener('error', event => { if (event.target?.dataset?.mcArt) fallbackArt(event.target); }, true);
 
 history.scrollRestoration = 'manual';
 document.addEventListener('keydown', e => {
