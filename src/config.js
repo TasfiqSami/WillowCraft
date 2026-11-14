@@ -11,7 +11,6 @@ export const server = {
   founded: '9 April 2018',
   region: 'Bangladesh / Asia',
   languages: ['English', 'Bangla'],
-  owner: 'Joynal Bokhsho',
   stats: [
     { label: 'Registered players', value: '10,000+', confirmed: false },
     { label: 'Uptime', value: '99.9%', confirmed: false },
@@ -30,17 +29,6 @@ export const server = {
   announcements: [],
   gallery: [],
   leaderboard: [],
-  staff: [
-    { name: 'joynalbokhsho', role: 'Owner', group: 'Owner' },
-    { name: 'RealEsco', role: 'Manager', group: 'Management' },
-    { name: 'AZombie_', role: 'Manager', group: 'Management' },
-    { name: 'MainulXD18', role: 'Developer', group: 'Development' },
-    { name: 'Sapish_', role: 'Developer', group: 'Development' },
-    { name: 'NOTHIN5', role: 'Jr. Developer', group: 'Development' },
-    { name: 'robin_the_noob', role: 'Mod', group: 'Moderation' },
-    { name: 'Betsumei', role: 'Jr. Mod', group: 'Moderation' },
-    { name: 'Tasif27', role: 'Former Manager', group: 'Former Staff', former: true }
-  ],
   store: { minPoints: 100, maxPoints: 50000, step: 100, defaultPoints: 700, currency: 'BDT', packages: [], prices: [{ points: 700, price: 330 }], paymentConfigured: false },
   ranks: [
     { name: 'VIP', points: 500, homes: 3, shops: 15, ah: 3, commands: ['/tpahere', '/back', '/craft'], tone: 'moss' },
