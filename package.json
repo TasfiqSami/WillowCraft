@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node server.mjs",
-    "build:vercel": "node scripts/build-vercel.mjs"
+    "build:vercel": "node scripts/build-vercel.mjs",
+    "check:seo": "node scripts/check-seo.mjs"
   }
 }

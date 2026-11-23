@@ -187,3 +187,9 @@ dialog.cart-drawer{margin:0 0 0 auto;height:100dvh;max-height:100dvh;width:min(4
 @media(prefers-reduced-motion:reduce){
   .team-card,.product-card,.team-filter,.filter-chip{transition:none!important}
 }
+
+/* Crawler-readable page content (prerendered). The router replaces it with the interactive page once JS runs. */
+.seo-static{max-width:var(--max);margin:190px auto 80px;padding:0 28px}
+.seo-static h1{margin:0 0 14px}
+.seo-static ul{padding-left:1.2em}
+.seo-static a{color:var(--accent)}

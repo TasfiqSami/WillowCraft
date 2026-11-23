@@ -1,4 +1,5 @@
 import { server, nav, footerNav, guides, rules, faq, team, departments, roleDetails } from './config.js';
+import { pageMeta, serializeJsonLd } from './seo.js';
 
 const runtime = globalThis.WILLOWCRAFT_RUNTIME || {};
 const siteName = String(runtime.name || server.name);
@@ -14,33 +15,6 @@ const icon = (value) => `<span class="icon" aria-hidden="true">${value}</span>`;
 const discordLink = (label = 'Join the Discord') => `<a class="button button-secondary" href="${server.discord}" target="_blank" rel="noopener noreferrer">${label}<span aria-hidden="true">↗</span></a>`;
 const discordButton = (extra = '') => `<a class="button button-discord ${extra}" href="${server.discord}" target="_blank" rel="noopener noreferrer" aria-label="Join ${esc(siteName)} Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 6.1a16.2 16.2 0 0 0-4-1.25l-.5 1a14.8 14.8 0 0 0-5.8 0l-.5-1a16.2 16.2 0 0 0-4 1.25C2.1 9.7 1.4 13.2 1.8 16.7a16.4 16.4 0 0 0 4.9 2.45l1.05-1.7a10.6 10.6 0 0 1-1.65-.8l.4-.3c3.2 1.5 6.7 1.5 9.8 0l.4.3a10.6 10.6 0 0 1-1.65.8l1.05 1.7a16.4 16.4 0 0 0 4.9-2.45c.5-4.1-.8-7.6-3.6-10.6Z"/><circle cx="8.8" cy="12.6" r="1.1" fill="var(--bg)"/><circle cx="15.2" cy="12.6" r="1.1" fill="var(--bg)"/></svg><span>Discord</span></a>`;
 const primary = (href, label, cls = '') => `<a class="button button-primary ${cls}" href="${href}">${label}<span aria-hidden="true">↗</span></a>`;
-
-const titles = {
-  '/': ['Find your place in the wild', 'A cozy Minecraft Survival SMP for explorers, builders, and the stories made together.'],
-  '/about': ['A world worth settling into', 'A community-first Survival SMP shaped by exploration, thoughtful building, and shared moments.'],
-  '/features': ['Survival, with room to grow', 'A world with more to discover and the freedom to make it your own.'],
-  '/how-to-join': ['Your next world is waiting', 'A few simple steps to find WillowCraft and make yourself at home.'],
-  '/guides': ['A little help for the journey', 'Useful starting points for life in WillowCraft. Server-specific details stay with the team in Discord.'],
-  '/guides/land-claims': ['Land Claim Guide', 'Get started with the supplied land-claim command and confirm current claim details with WillowCraft staff.'],
-  '/guides/economy': ['Economy Guide', 'A high-level introduction to WillowCraft’s player-driven economy. Ask the team for current mechanics.'],
-  '/guides/custom-biomes': ['Custom Biomes Guide', 'Explore WillowCraft’s custom-biome feature. Specific locations and names are not published yet.'],
-  '/guides/ranks': ['Ranks and Progression Guide', 'Find current WillowCraft rank details through the official Discord community.'],
-  '/rules': ['A world we build together', 'A clear guide to keeping WillowCraft welcoming, fair, and fun for everyone.'],
-  '/faq': ['Good questions, clear answers', 'The details players ask about most, all in one place.'],
-  '/community': ['Find your people', 'Meet the community, get help, and keep up with what is happening in WillowCraft.'],
-  '/announcements': ['WillowCraft announcements', 'Official updates, community highlights, events, and notices from WillowCraft.'],
-  '/ranks': ['WillowCraft ranks', 'Compare the supplied VIP, MVP, and ELITE rank details.'],
-  '/store': ['WillowCraft Points store', 'Browse points information and learn what is needed before purchases can be enabled.'],
-  '/leaderboard': ['Supporter leaderboard', 'A leaderboard will appear when verified, publishable purchase records are available.'],
-  '/gallery': ['Community gallery', 'WillowCraft builds and moments shared by the community.'],
-  '/team': ['The WillowCraft team', 'Meet the people who help make WillowCraft a welcoming place to play.'],
-  '/support': ['We’re here to help', 'For player reports, bug reports, and questions, Discord is the best place to reach the team.'],
-  '/terms': ['Terms of service', 'A draft framework for WillowCraft. Owner and legal review is required before publication.'],
-  '/privacy': ['Privacy policy', 'A transparent summary of what this frontend stores and what still needs owner confirmation.'],
-  '/shipping': ['Shipping & delivery', 'Delivery details for store items are still being confirmed by the owner.'],
-  '/refunds': ['Returns & refunds', 'Refund terms are still being confirmed by the owner.'],
-  '/maintenance': ['Maintenance', 'WillowCraft is taking a short break for maintenance. Check Discord for updates.'],
-};
 
 const backgroundAudio = $('#background-audio');
 let musicAutoplayBlocked = false;
@@ -405,25 +379,33 @@ let currentPath = '/';
 const storeCart = [];
 let storeUsername = '';
 function articleSlug(path) { try { return decodeURIComponent(path.slice('/announcements/'.length)); } catch { return null; } }
+function applySeo(meta) {
+  document.title = meta.title;
+  const setAttr = (selector, attribute, value) => { const element = $(selector); if (element) element.setAttribute(attribute, value); };
+  setAttr('meta[name="description"]', 'content', meta.description);
+  setAttr('meta[name="robots"]', 'content', meta.robots);
+  setAttr('meta[property="og:title"]', 'content', meta.title);
+  setAttr('meta[property="og:description"]', 'content', meta.description);
+  setAttr('meta[property="og:type"]', 'content', meta.ogType);
+  setAttr('meta[name="twitter:title"]', 'content', meta.title);
+  setAttr('meta[name="twitter:description"]', 'content', meta.description);
+  let canonical = $('link[rel="canonical"]');
+  if (meta.canonical) {
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = meta.canonical;
+    setAttr('meta[property="og:url"]', 'content', meta.canonical);
+  } else canonical?.remove();
+  let data = $('#seo-jsonld');
+  if (meta.jsonLd) {
+    if (!data) { data = document.createElement('script'); data.type = 'application/ld+json'; data.id = 'seo-jsonld'; document.head.appendChild(data); }
+    data.textContent = serializeJsonLd(meta.jsonLd);
+  } else data?.remove();
+}
 function render(path, animate = false, restoreY = 0) {
   let clean = path.replace(/\/$/, '') || '/';
   if (server.maintenanceMode && clean !== '/maintenance') clean = '/maintenance';
   currentPath = clean;
-  const article = clean.startsWith('/announcements/') ? server.announcements.find(item=>item.slug===articleSlug(clean)) : null;
-  const teamMember = clean.startsWith('/team/') ? teamBySlug(clean.slice('/team/'.length)) : null;
-  const pageTitle = (titles[clean]?.[0] || article?.title || teamMember?.name || (routes[clean] ? clean.slice(1).replaceAll('-', ' ') : 'Page not found')).replaceAll('WillowCraft', siteName);
-  document.title = `${pageTitle} · ${siteName}`;
-  const description = (clean === '/' ? server.description : teamMember?.bio?.[0] || titles[clean]?.[1] || article?.summary || server.description).replaceAll('WillowCraft', siteName);
-  const canonicalUrl = location.origin + clean;
-  const descriptionMeta = $('meta[name="description"]');
-  if (descriptionMeta) descriptionMeta.content = description;
-  const setMeta = (selector, value) => { const element = $(selector); if (element) element.setAttribute('content', value); };
-  setMeta('meta[property="og:title"]', document.title);
-  setMeta('meta[property="og:description"]', description);
-  setMeta('meta[property="og:url"]', canonicalUrl);
-  let canonical = $('link[rel="canonical"]');
-  if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-  canonical.href = canonicalUrl;
+  applySeo(pageMeta(clean, { siteName, tagline: runtime.tagline, description: server.description, siteUrl: runtime.siteUrl }));
   document.body.classList.remove('menu-open');
   $('#site-header').innerHTML = header(clean);
   $('#site-footer').innerHTML = applyConfiguredName(footer());

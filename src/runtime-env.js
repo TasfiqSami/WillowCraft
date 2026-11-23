@@ -1,4 +1,5 @@
 import { server as content } from './config.js';
+import { normalizeSiteUrl } from './seo.js';
 
 const defaults = {
   siteName: content.name,
@@ -43,7 +44,8 @@ export function getRuntimeConfig(env = process.env) {
     name: textSetting(env, 'SITE_NAME', defaults.siteName, 80),
     tagline: textSetting(env, 'SITE_TAGLINE', defaults.siteTagline, 120),
     description: textSetting(env, 'SITE_DESCRIPTION', defaults.siteDescription, 300),
-    themeColor: safeColor(env, 'THEME_DARK_BG')
+    themeColor: safeColor(env, 'THEME_DARK_BG'),
+    siteUrl: normalizeSiteUrl(env.SITE_URL)
   };
 }
 
